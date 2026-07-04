@@ -95,7 +95,19 @@ function chair(x,y,id){
 
     c.classList.add("seat");
 
-    svg.appendChild(c);
+    viewport.appendChild(c);
+
+    const t=document.createElementNS(svgNS,"text");
+
+    t.setAttribute("x",x);
+
+    t.setAttribute("y",y+1);
+
+    t.setAttribute("class","seatText");
+
+    t.textContent=id;
+
+    viewport.appendChild(t);
 
     seats.push({
 
@@ -110,6 +122,7 @@ function chair(x,y,id){
     });
 
 }
+
 
 function drawTable(x,y,w,h){
 
