@@ -4,18 +4,42 @@ document.addEventListener("click",function(e){
 
     document.querySelectorAll(".seat").forEach(s=>{
 
-        s.setAttribute("fill","#90CAF9");
+        s.classList.remove("selected");
 
     });
 
-    e.target.setAttribute("fill","#FF9800");
+    e.target.classList.add("selected");
 
-    document.getElementById("seatInfo").innerHTML=`
+    const id=e.target.dataset.id;
 
-        <h3>${e.target.dataset.id}</h3>
+    const person=people.find(p=>p.seat===id);
+
+    if(person){
+
+        document.getElementById("seatInfo").innerHTML=`
+
+            <h2>${person.name}</h2>
+
+            <hr>
+
+            <p><b>ที่นั่ง :</b> ${person.seat}</p>
+
+            <p><b>ตำแหน่ง :</b> ${person.position}</p>
+
+            <p><b>หน่วยงาน :</b> ${person.department}</p>
+
+        `;
+
+    }else{
+
+        document.getElementById("seatInfo").innerHTML=`
+
+        <h2>${id}</h2>
 
         <p>ยังไม่มีผู้เข้าร่วม</p>
 
-    `;
+        `;
+
+    }
 
 });
