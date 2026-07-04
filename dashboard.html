@@ -1,1 +1,90 @@
+<!DOCTYPE html>
+<html lang="th">
 
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>Seat Planner Professional</title>
+
+<link rel="stylesheet" href="css/dashboard.css">
+
+</head>
+
+<body>
+
+<header>
+
+<div class="logo">
+
+Seat Planner Professional
+
+</div>
+
+<nav>
+
+<button id="btnImport">Import Excel</button>
+
+<button id="btnAuto">จัดที่นั่ง</button>
+
+<button id="btnSave">บันทึก</button>
+
+<button id="btnPrint">พิมพ์</button>
+
+</nav>
+
+</header>
+
+<main>
+
+<div class="leftPanel">
+
+<h2>รายชื่อผู้เข้าร่วม</h2>
+
+<input
+type="text"
+id="search"
+placeholder="ค้นหาชื่อ">
+
+<div id="personList">
+
+</div>
+
+</div>
+
+<div class="centerPanel">
+
+<svg
+
+id="room"
+
+viewBox="0 0 1600 1000">
+
+</svg>
+
+</div>
+
+<div class="rightPanel">
+
+<h2>รายละเอียด</h2>
+
+<div id="seatInfo">
+
+ยังไม่ได้เลือกที่นั่ง
+
+</div>
+
+</div>
+
+</main>
+
+<script src="js/layout.js"></script>
+
+<script src="js/seat.js"></script>
+
+</body>
+
+</html>
