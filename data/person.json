@@ -1,1 +1,23 @@
-
+[
+    {
+        "seat":"A01",
+        "name":"พล.อ.สมชาย",
+        "position":"ประธาน",
+        "department":"กองบัญชาการ",
+        "type":"president"
+    },
+    {
+        "seat":"A02",
+        "name":"นายกิตติ",
+        "position":"รองประธาน",
+        "department":"ฝ่ายอำนวยการ",
+        "type":"vip"
+    },
+    {
+        "seat":"B01",
+        "name":"นายวิทยา",
+        "position":"เจ้าหน้าที่",
+        "department":"กองแผน",
+        "type":"normal"
+    }
+]
