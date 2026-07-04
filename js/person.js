@@ -12,6 +12,12 @@ async function loadPeople(){
 
 function renderPeople(){
 
+    document.querySelectorAll(".seat").forEach(seat=>{
+
+        seat.setAttribute("fill","#90CAF9");
+
+    });
+
     people.forEach(person=>{
 
         const seat=document.querySelector(
