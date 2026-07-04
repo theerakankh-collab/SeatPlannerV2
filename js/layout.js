@@ -1,5 +1,7 @@
 const svg = document.getElementById("room");
 
+const viewport = document.getElementById("viewport");
+
 const svgNS = "http://www.w3.org/2000/svg";
 
 function rect(x,y,w,h,color){
