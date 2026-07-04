@@ -87,3 +87,33 @@ people.forEach(person=>{
     list.appendChild(div);
 
 });
+
+function renderPersonList(){
+
+    const list=document.getElementById("personList");
+
+    list.innerHTML="";
+
+    people.forEach(person=>{
+
+        const div=document.createElement("div");
+
+        div.className="personItem";
+
+        div.innerHTML=`
+
+        <b>${person.name}</b>
+
+        <br>
+
+        ${person.position}
+
+        `;
+
+        list.appendChild(div);
+
+    });
+
+}
+
+
