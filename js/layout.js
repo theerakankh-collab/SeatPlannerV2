@@ -50,36 +50,61 @@ return c;
 
 }
 
-function drawRoom(){
+const svg = document.getElementById("room");
+const svgNS = "http://www.w3.org/2000/svg";
 
-svg.innerHTML="";
+const seats = [];
 
-rect(50,50,1500,900,"#ffffff");
+function rect(x,y,w,h,color){
 
-/* โต๊ะหัว */
+    const r=document.createElementNS(svgNS,"rect");
 
-rect(500,80,320,120,"#FFF8E1");
+    r.setAttribute("x",x);
+    r.setAttribute("y",y);
+    r.setAttribute("width",w);
+    r.setAttribute("height",h);
 
-/* โต๊ะกลาง */
+    r.setAttribute("fill",color);
 
-rect(650,300,250,500,"#FFF8E1");
+    r.setAttribute("stroke","#333");
+    r.setAttribute("stroke-width","3");
 
-/* โต๊ะซ้าย */
-
-rect(170,300,150,150,"#FFF8E1");
-
-rect(170,520,150,150,"#FFF8E1");
-
-rect(170,740,150,150,"#FFF8E1");
-
-/* โต๊ะขวา */
-
-rect(1180,300,150,150,"#FFF8E1");
-
-rect(1180,520,150,150,"#FFF8E1");
-
-rect(1180,740,150,150,"#FFF8E1");
+    svg.appendChild(r);
 
 }
 
-drawRoom();
+function chair(x,y,id){
+
+    const c=document.createElementNS(svgNS,"circle");
+
+    c.setAttribute("cx",x);
+
+    c.setAttribute("cy",y);
+
+    c.setAttribute("r",13);
+
+    c.setAttribute("fill","#90CAF9");
+
+    c.setAttribute("stroke","#1565C0");
+
+    c.setAttribute("stroke-width","2");
+
+    c.dataset.id=id;
+
+    c.classList.add("seat");
+
+    svg.appendChild(c);
+
+    seats.push({
+
+        id:id,
+
+        x:x,
+
+        y:y,
+
+        person:null
+
+    });
+
+}
