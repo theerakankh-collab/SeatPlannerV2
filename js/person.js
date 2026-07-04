@@ -47,3 +47,37 @@ function renderPeople(){
 }
 
 loadPeople();
+
+const list=document.getElementById("personList");
+
+people.forEach(person=>{
+
+    const div=document.createElement("div");
+
+    div.className="personItem";
+
+    div.innerHTML=`
+
+        <b>${person.name}</b><br>
+
+        ${person.position}
+
+    `;
+
+    div.onclick=()=>{
+
+        document.querySelector(
+
+        `[data-id="${person.seat}"]`
+
+        ).dispatchEvent(
+
+            new MouseEvent("click")
+
+        );
+
+    };
+
+    list.appendChild(div);
+
+});
