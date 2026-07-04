@@ -167,3 +167,27 @@ fill:#222;
 
 }
 
+.selected{
+
+stroke:#FF5722;
+
+stroke-width:5;
+
+}
+
+.personItem{
+
+padding:10px;
+
+border-bottom:1px solid #ddd;
+
+cursor:pointer;
+
+}
+
+.personItem:hover{
+
+background:#E3F2FD;
+
+}
+
