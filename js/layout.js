@@ -22,7 +22,7 @@ r.setAttribute("stroke","#333");
 
 r.setAttribute("stroke-width","3");
 
-svg.appendChild(r);
+viewport.appendChild(r);
 
 return r;
 
