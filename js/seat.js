@@ -1,11 +1,21 @@
 document.addEventListener("click",function(e){
 
-if(e.target.classList.contains("seat")){
+    if(!e.target.classList.contains("seat")) return;
 
-document.getElementById("seatInfo").innerHTML=
+    document.querySelectorAll(".seat").forEach(s=>{
 
-"รหัสที่นั่ง : "+e.target.dataset.id;
+        s.setAttribute("fill","#90CAF9");
 
-}
+    });
+
+    e.target.setAttribute("fill","#FF9800");
+
+    document.getElementById("seatInfo").innerHTML=`
+
+        <h3>${e.target.dataset.id}</h3>
+
+        <p>ยังไม่มีผู้เข้าร่วม</p>
+
+    `;
 
 });
