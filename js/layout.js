@@ -46,6 +46,8 @@ c.dataset.id=id;
 
 c.classList.add("seat");
 
+c.setAttribute("draggable", true);
+
 svg.appendChild(c);
 
 return c;
