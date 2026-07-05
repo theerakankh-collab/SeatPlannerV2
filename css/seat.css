@@ -1,19 +1,409 @@
+/* ==========================================
+   Seat Planner Professional v3.2
+   seat.css
+========================================== */
+
+#seatMap{
+
+    display:grid;
+
+    gap:12px;
+
+    justify-content:center;
+
+    align-content:start;
+
+    padding:30px;
+
+    min-height:700px;
+
+}
+
+/* ===================================== */
+
+.seat-row{
+
+    display:flex;
+
+    justify-content:center;
+
+    gap:10px;
+
+}
+
+/* ===================================== */
+
 .seat{
 
-cursor:grab;
+    width:70px;
+
+    height:70px;
+
+    border-radius:10px;
+
+    border:2px solid #999;
+
+    background:#ffffff;
+
+    cursor:pointer;
+
+    user-select:none;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:center;
+
+    transition:.25s;
+
+    position:relative;
+
+    font-size:13px;
+
+    font-weight:bold;
 
 }
 
-.seat:active{
+.seat:hover{
 
-cursor:grabbing;
+    transform:scale(1.08);
+
+    box-shadow:0 4px 12px rgba(0,0,0,.25);
 
 }
 
-.seat.dragTarget{
+/* ===================================== */
 
-stroke:#FF0000;
+.seat-number{
 
-stroke-width:5;
+    font-size:15px;
+
+    font-weight:bold;
+
+}
+
+.seat-name{
+
+    font-size:11px;
+
+    margin-top:4px;
+
+    text-align:center;
+
+    overflow:hidden;
+
+    white-space:nowrap;
+
+    width:90%;
+
+    text-overflow:ellipsis;
+
+}
+
+/* ===================================== */
+/* ประธาน */
+
+.seat.head{
+
+    background:#FFD700;
+
+    border-color:#CC9900;
+
+    color:#000;
+
+}
+
+/* HeadCenter */
+
+.seat.headcenter{
+
+    background:#FF9800;
+
+    border-color:#E65100;
+
+    color:white;
+
+}
+
+/* Upper1 */
+
+.seat.upper1{
+
+    background:#42A5F5;
+
+    border-color:#1565C0;
+
+    color:white;
+
+}
+
+/* VIP */
+
+.seat.vip{
+
+    background:#7E57C2;
+
+    border-color:#4527A0;
+
+    color:white;
+
+}
+
+/* ผู้ร่วมพิธี */
+
+.seat.normal{
+
+    background:#ECEFF1;
+
+    border-color:#90A4AE;
+
+}
+
+/* ===================================== */
+
+.seat.locked{
+
+    border:3px solid red;
+
+}
+
+.seat.locked::after{
+
+    content:"🔒";
+
+    position:absolute;
+
+    top:3px;
+
+    right:4px;
+
+    font-size:14px;
+
+}
+
+/* ===================================== */
+
+.seat.empty{
+
+    background:#fafafa;
+
+    border:2px dashed #cccccc;
+
+    color:#bbb;
+
+}
+
+/* ===================================== */
+
+.seat.selected{
+
+    outline:4px solid #00C853;
+
+}
+
+.seat.dragging{
+
+    opacity:.4;
+
+}
+
+.seat.over{
+
+    outline:3px dashed #1976D2;
+
+}
+
+/* ===================================== */
+
+.zone-title{
+
+    text-align:center;
+
+    font-size:22px;
+
+    font-weight:bold;
+
+    margin:20px 0;
+
+    color:#1565C0;
+
+}
+
+/* ===================================== */
+
+.table-name{
+
+    width:120px;
+
+    text-align:center;
+
+    font-weight:bold;
+
+    margin:auto;
+
+    padding:6px;
+
+    border-radius:6px;
+
+    background:#1565C0;
+
+    color:white;
+
+}
+
+/* ===================================== */
+
+.walkway{
+
+    width:50px;
+
+}
+
+.space{
+
+    width:30px;
+
+}
+
+/* ===================================== */
+
+.legend{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:12px;
+
+    margin:20px;
+
+}
+
+.legend-item{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+}
+
+.legend-color{
+
+    width:20px;
+
+    height:20px;
+
+    border-radius:4px;
+
+}
+
+/* ===================================== */
+
+.color-head{
+
+    background:#FFD700;
+
+}
+
+.color-headcenter{
+
+    background:#FF9800;
+
+}
+
+.color-upper1{
+
+    background:#42A5F5;
+
+}
+
+.color-vip{
+
+    background:#7E57C2;
+
+}
+
+.color-normal{
+
+    background:#ECEFF1;
+
+}
+
+/* ===================================== */
+
+.stage{
+
+    width:600px;
+
+    height:60px;
+
+    margin:auto;
+
+    margin-bottom:30px;
+
+    border-radius:10px;
+
+    background:#37474F;
+
+    color:white;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-size:24px;
+
+    font-weight:bold;
+
+}
+
+/* ===================================== */
+
+@media(max-width:1000px){
+
+.seat{
+
+    width:55px;
+
+    height:55px;
+
+}
+
+.seat-name{
+
+    display:none;
+
+}
+
+}
+
+/* ===================================== */
+
+@media print{
+
+.seat{
+
+    box-shadow:none;
+
+}
+
+.seat:hover{
+
+    transform:none;
+
+}
+
+.legend{
+
+    display:none;
+
+}
 
 }
