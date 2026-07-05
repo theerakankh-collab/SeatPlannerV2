@@ -1,117 +1,57 @@
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-<title>Seat Planner Professional</title>
-
-<link rel="stylesheet" href="css/dashboard.css">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seat Planner Professional</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    
+    <script src="library/xlsx.full.min.js" defer></script>
+    <script src="js/layout.js" defer></script>
+    <script src="js/person.js" defer></script>
+    <script src="js/renderer.js" defer></script>
+    <script src="js/excel.js" defer></script>
+    <script src="js/engine.js" defer></script>
+    <script src="js/autoseat.js" defer></script>
+    <script src="js/seat.js" defer></script>
+    <script src="js/swap.js" defer></script>
+    <script src="js/dragdrop.js" defer></script>
+    <script src="js/zoom.js" defer></script>
+    <script src="js/dashboard.js" defer></script>
 </head>
-
 <body>
 
 <header>
-
-<div class="logo">
-
-Seat Planner Professional
-
-</div>
-
-<nav>
-
-<button id="btnImport">Import Excel</button>
-
-<input
-    type="file"
-    id="excelFile"
-    accept=".xlsx,.xls"
-    hidden>
-
-<button id="btnAuto">จัดที่นั่ง</button>
-
-<button id="btnSave">บันทึก</button>
-
-<button id="btnPrint">พิมพ์</button>
-
-</nav>
-
+    <div class="logo">Seat Planner Professional</div>
+    <nav>
+        <button id="btnImport">Import Excel</button>
+        <input type="file" id="excelFile" accept=".xlsx,.xls" hidden>
+        <button id="btnAuto">จัดที่นั่ง</button>
+        <button id="btnSave">บันทึก</button>
+        <button id="btnPrint">พิมพ์</button>
+    </nav>
 </header>
 
 <main>
+    <div class="leftPanel">
+        <h2>รายชื่อผู้เข้าร่วม</h2>
+        <input type="text" id="search" placeholder="ค้นหาชื่อ">
+        <div id="personList"></div>
+    </div>
 
-<div class="leftPanel">
+    <div class="centerPanel">
+        <div id="canvas">
+            <svg id="room" viewBox="0 0 1600 1000">
+                <g id="viewport"></g>
+            </svg>
+        </div>
+    </div>
 
-<h2>รายชื่อผู้เข้าร่วม</h2>
-
-<input
-type="text"
-id="search"
-placeholder="ค้นหาชื่อ">
-
-<div id="personList">
-
-</div>
-
-</div>
-
-<div class="centerPanel">
-
-<div id="canvas">
-
-<svg id="room" viewBox="0 0 1600 1000">
-
-<g id="viewport"></g>
-
-</svg>
-
-</div>
-
-</div>
-
-<div class="rightPanel">
-
-<h2>รายละเอียด</h2>
-
-<div id="seatInfo">
-
-ยังไม่ได้เลือกที่นั่ง
-
-</div>
-
-</div>
-
+    <div class="rightPanel">
+        <h2>รายละเอียด</h2>
+        <div id="seatInfo">ยังไม่ได้เลือกที่นั่ง</div>
+    </div>
 </main>
-
-<script src="library/xlsx.full.min.js"></script>
-
-<script src="js/layout.js"></script>
-
-<script src="js/person.js"></script>
-
-<script src="js/renderer.js"></script>
-
-<script src="js/excel.js"></script>
-
-<script src="js/engine.js"></script>
-
-<script src="js/autoseat.js"></script>
-
-<script src="js/seat.js"></script>
-
-<script src="js/swap.js"></script>
-
-<script src="js/dragdrop.js"></script>
-
-<script src="js/zoom.js"></script>
-
-<script src="js/dashboard.js"></script>
 
 </body>
 </html>
