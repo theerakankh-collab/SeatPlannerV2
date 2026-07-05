@@ -721,4 +721,102 @@ const ImportEngine = {
   }
 };
 
+/* =========================
+   PART 9: PERSISTENCE ENGINE
+   SAVE / LOAD / EXPORT
+   ========================= */
+
+const StorageEngine = {
+
+  /* -------------------------
+     KEY หลักของระบบ
+  -------------------------- */
+  key: "seatplanner_layout_v1",
+
+  /* -------------------------
+     SAVE state ทั้งระบบ
+  -------------------------- */
+  save(state) {
+    try {
+      const data = {
+        seats: state.seats,
+        layout: state.layout,
+        savedAt: new Date().toISOString()
+      };
+
+      localStorage.setItem(this.key, JSON.stringify(data));
+      console.log("Layout saved");
+    } catch (err) {
+      console.error("Save failed", err);
+    }
+  },
+
+  /* -------------------------
+     LOAD state กลับมา
+  -------------------------- */
+  load() {
+    try {
+      const raw = localStorage.getItem(this.key);
+      if (!raw) return null;
+
+      const data = JSON.parse(raw);
+      return data;
+    } catch (err) {
+      console.error("Load failed", err);
+      return null;
+    }
+  },
+
+  /* -------------------------
+     CLEAR ข้อมูลทั้งหมด
+  -------------------------- */
+  clear() {
+    localStorage.removeItem(this.key);
+    console.log("Layout cleared");
+  },
+
+  /* -------------------------
+     EXPORT เป็น JSON file
+  -------------------------- */
+  exportJSON(state) {
+    const data = {
+      seats: state.seats,
+      layout: state.layout,
+      exportedAt: new Date().toISOString()
+    };
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json"
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "seat-layout.json";
+    a.click();
+
+    URL.revokeObjectURL(url);
+  },
+
+  /* -------------------------
+     IMPORT JSON file กลับเข้า
+  -------------------------- */
+  importJSON(file, callback) {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        callback(data);
+      } catch (err) {
+        console.error("Invalid JSON file", err);
+      }
+    };
+
+    reader.readAsText(file);
+  }
+};
+
+
 
