@@ -514,3 +514,97 @@ const Engine = {
   }
 };
 
+/* =========================
+   PART 7: PRIORITY ENGINE
+   ========================= */
+
+const PriorityEngine = {
+
+  /* -------------------------
+     กำหนด Priority Rules
+  -------------------------- */
+  rules: {
+    HEADCENTER: 1,   // สูงสุด (A)
+    HEAD: 2,
+    CENTER: 3,
+    B: 4,
+    C: 5,
+    D: 6,
+    E: 7,
+    UPPER1: 8        // ตามที่กำหนด
+    // UPPER2 ถูกตัดออก
+  },
+
+  /* -------------------------
+     แปลง type -> priority number
+  -------------------------- */
+  getPriority(type) {
+    return this.rules[type] ?? 999;
+  },
+
+  /* -------------------------
+     จัดเรียง seats ตาม priority
+  -------------------------- */
+  sortSeats(seats) {
+    return seats.sort((a, b) => {
+      const pa = this.getPriority(a.type);
+      const pb = this.getPriority(b.type);
+
+      if (pa === pb) {
+        // ถ้า priority เท่ากัน ใช้ ID เป็นตัวกันสับสน
+        return a.id - b.id;
+      }
+
+      return pa - pb;
+    });
+  },
+
+  /* -------------------------
+     จัดกลุ่ม seats ตามประเภท
+  -------------------------- */
+  groupSeats(seats) {
+    const groups = {};
+
+    seats.forEach(seat => {
+      const key = seat.type || "UNKNOWN";
+
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(seat);
+    });
+
+    return groups;
+  },
+
+  /* -------------------------
+     reassign ลำดับใหม่ (สำคัญมาก)
+     ใช้ตอน import Excel หรือ reload
+  -------------------------- */
+  normalize(seats) {
+    const sorted = this.sortSeats(seats);
+
+    let index = 1;
+
+    return sorted.map(seat => {
+      return {
+        ...seat,
+        order: index++
+      };
+    });
+  },
+
+  /* -------------------------
+     debug แสดงลำดับ
+  -------------------------- */
+  print(seats) {
+    console.table(
+      seats.map(s => ({
+        id: s.id,
+        type: s.type,
+        priority: this.getPriority(s.type),
+        order: s.order || "-"
+      }))
+    );
+  }
+};
+
+
