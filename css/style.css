@@ -1,409 +1,298 @@
-/* =====================================
-   Seat Planner Professional v3.2
-   style.css
-===================================== */
+/* ==========================================================
+   Seat Planner Professional v4.0
+   style.css (Core App Architecture & Layout Elements)
+========================================================== */
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-:root{
+:root {
+    --primary: #1565c0;
+    --primary-dark: #0d47a1;
+    --primary-light: #eef2f5;
 
-    --primary:#1565c0;
-    --primary-dark:#0d47a1;
+    --success: #2e7d32;
+    --danger: #c62828;
+    --warning: #f9a825;
 
-    --success:#2e7d32;
-    --danger:#c62828;
-    --warning:#f9a825;
+    --bg: #f3f6fb;
+    --card: #ffffff;
+    --border: #d9d9d9;
+    --text: #222;
+    --text-muted: #546E7A;
 
-    --bg:#f3f6fb;
-
-    --card:#ffffff;
-
-    --border:#d9d9d9;
-
-    --text:#222;
-
-    --radius:10px;
-
-    --shadow:
-        0 2px 8px rgba(0,0,0,.12);
-
+    --radius: 10px;
+    --shadow: 0 2px 8px rgba(0,0,0,.12);
 }
 
-body{
-
-    font-family:
-        "Segoe UI",
-        Tahoma,
-        sans-serif;
-
-    background:var(--bg);
-
-    color:var(--text);
-
+body {
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* ป้องกันการ Scroll นอกขอบจอหลัก */
 }
 
-/* ===================== */
+/* ==========================================================
+   Header & Navigation (สอดคล้องกับโครงสร้างด้านบนสุด)
+========================================================== */
 
-header{
-
-    background:var(--primary);
-
-    color:#fff;
-
-    padding:18px;
-
-    box-shadow:var(--shadow);
-
+header {
+    background: var(--primary);
+    color: #fff;
+    padding: 12px 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 70px;
+    z-index: 100;
 }
 
-header h1{
-
-    font-size:28px;
-
+header .logo {
+    font-size: 24px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-header p{
-
-    opacity:.8;
-
+header nav {
+    display: flex;
+    gap: 10px;
 }
 
-/* ===================== */
+/* ==========================================================
+   3-Panel Application Layout (ซ้าย, กลาง, ขวา)
+========================================================== */
 
-.container{
-
-    display:grid;
-
-    grid-template-columns:
-
-        320px
-        1fr;
-
-    gap:20px;
-
-    padding:20px;
-
+.app-layout {
+    display: flex;
+    flex: 1;
+    height: calc(100vh - 70px);
+    overflow: hidden;
 }
 
-/* ===================== */
-
-.sidebar{
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:18px;
-
+/* แผงด้านซ้ายและขวา (สอดคล้องกับ excel.js, person.js, dashboard.js) */
+.leftPanel, .rightPanel {
+    width: 320px;
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 18px;
+    gap: 15px;
 }
 
-/* ===================== */
-
-.card{
-
-    background:#fff;
-
-    border-radius:var(--radius);
-
-    box-shadow:var(--shadow);
-
-    padding:18px;
-
+.rightPanel {
+    border-right: none;
+    border-left: 1px solid var(--border);
 }
 
-.card h2{
-
-    margin-bottom:12px;
-
-    color:var(--primary);
-
-    font-size:20px;
-
+/* แผงแสดงผลหลักตรงกลาง (พื้นที่สำหรับ SVG Canvas) */
+.centerPanel {
+    flex: 1;
+    position: relative;
+    background: #eef2f5;
+    overflow: hidden;
 }
 
-/* ===================== */
+/* ==========================================================
+   Components & Interactive Elements
+========================================================== */
 
-button{
-
-    width:100%;
-
-    margin-top:8px;
-
-    padding:12px;
-
-    border:none;
-
-    border-radius:8px;
-
-    background:var(--primary);
-
-    color:#fff;
-
-    cursor:pointer;
-
-    font-size:15px;
-
-    transition:.2s;
-
+/* ฟอร์มและช่องค้นหา */
+.search-wrapper {
+    width: 100%;
 }
 
-button:hover{
-
-    background:var(--primary-dark);
-
-    transform:translateY(-2px);
-
+input[type=text], select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
 }
 
-button:active{
-
-    transform:scale(.98);
-
+input[type=text]:focus {
+    border-color: var(--primary);
 }
 
-/* ===================== */
-
-input[type=file],
-input[type=text],
-select{
-
-    width:100%;
-
-    margin-top:8px;
-
-    padding:10px;
-
-    border:1px solid var(--border);
-
-    border-radius:8px;
-
-    font-size:15px;
-
+/* ส่วนแสดงลิสต์รายชื่อแบบสกรูล (Left Panel) */
+.dynamic-list {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    background: #fafafa;
 }
 
-/* ===================== */
-
-.workspace{
-
-    background:#fff;
-
-    border-radius:10px;
-
-    box-shadow:var(--shadow);
-
-    padding:20px;
-
-    overflow:auto;
-
-    min-height:800px;
-
+/* จุดแจงรายละเอียดข้อมูลที่นั่ง (Right Panel) */
+.section-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-/* ===================== */
-
-#seatMap{
-
-    width:100%;
-
-    min-height:700px;
-
+.section-block h2 {
+    font-size: 18px;
+    color: var(--primary);
 }
 
-/* ===================== */
-
-footer{
-
-    text-align:center;
-
-    padding:15px;
-
-    color:#666;
-
-    font-size:14px;
-
+.info-box {
+    background: #fafafa;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    min-height: 120px;
 }
 
-/* ===================== */
-
-.stats{
-
-    display:grid;
-
-    grid-template-columns:1fr 1fr;
-
-    gap:10px;
-
+.placeholder-text {
+    color: #888;
+    font-size: 13px;
+    text-align: center;
+    margin-top: 30px;
 }
 
-.stat-box{
+/* ==========================================================
+   Buttons UI Core
+========================================================== */
 
-    background:#fafafa;
-
-    border:1px solid #ddd;
-
-    border-radius:8px;
-
-    padding:12px;
-
-    text-align:center;
-
+/* ปุ่มกดทั่วไปในเมนูบาร์ */
+.nav-btn {
+    padding: 8px 16px;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 6px;
+    background: transparent;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: .2s;
 }
 
-.stat-box h3{
-
-    font-size:28px;
-
-    color:var(--primary);
-
+.nav-btn:hover {
+    background: rgba(255,255,255,0.15);
+    transform: translateY(-1px);
 }
 
-.stat-box p{
-
-    margin-top:5px;
-
+/* ปุ่มเด่นกระตุ้นการคำนวณรัน Auto Seat */
+.btn-action {
+    background: #fff !important;
+    color: var(--primary) !important;
+    font-weight: bold;
+    border: none;
 }
 
-/* ===================== */
-
-.table{
-
-    width:100%;
-
-    border-collapse:collapse;
-
+.btn-action:hover {
+    background: var(--primary-light) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.table th{
-
-    background:var(--primary);
-
-    color:#fff;
-
+/* ปุ่มเสริมภายในแผงควบคุมด้านข้าง */
+.panel-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: var(--primary);
+    color: #fff;
+    cursor: pointer;
+    font-size: 15px;
+    transition: .2s;
 }
 
-.table td,
-.table th{
-
-    padding:10px;
-
-    border:1px solid #ddd;
-
+.panel-btn:hover {
+    background: var(--primary-dark);
 }
 
-.table tr:nth-child(even){
+/* ==========================================================
+   Dashboard Statistics Summary
+========================================================== */
 
-    background:#fafafa;
-
+.status-dashboard {
+    margin-top: auto; /* ดันกล่องสถิติลงไปข้างล่างสุดของพาเนล */
+    border-top: 1px solid var(--border);
+    padding-top: 15px;
 }
 
-/* ===================== */
-
-.toolbar{
-
-    display:flex;
-
-    gap:10px;
-
-    margin-bottom:15px;
-
+.status-dashboard h3 {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
 }
 
-.toolbar button{
-
-    width:auto;
-
-    padding:10px 20px;
-
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 14px;
 }
 
-/* ===================== */
-
-.hidden{
-
-    display:none;
-
+.stat-item strong {
+    font-size: 16px;
 }
 
-/* ===================== */
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
 
-.center{
-
-    text-align:center;
-
+/* Utility Badges */
+.v-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    font-size: 11px;
+    font-weight: normal;
 }
 
-/* ===================== */
-
-.right{
-
-    text-align:right;
-
+.count-badge {
+    font-size: 12px;
+    color: var(--text-muted);
+    background: var(--primary-light);
+    padding: 3px 8px;
+    border-radius: 12px;
 }
 
-/* ===================== */
+/* ==========================================================
+   Responsive & Print Layout Media Rules
+========================================================== */
 
-.badge{
-
-    display:inline-block;
-
-    padding:4px 10px;
-
-    border-radius:20px;
-
-    background:var(--primary);
-
-    color:white;
-
-    font-size:12px;
-
+@media(max-width: 1024px) {
+    .app-layout {
+        flex-direction: column;
+        overflow-y: auto;
+    }
+    .leftPanel, .rightPanel {
+        width: 100%;
+        height: auto;
+        border: none;
+        border-bottom: 1px solid var(--border);
+    }
+    .centerPanel {
+        height: 600px;
+    }
 }
 
-/* ===================== */
-
-@media(max-width:1000px){
-
-.container{
-
-    grid-template-columns:1fr;
-
-}
-
-.workspace{
-
-    min-height:500px;
-
-}
-
-}
-
-/* ===================== */
-
-@media print{
-
-header,
-footer,
-.sidebar{
-
-    display:none;
-
-}
-
-.container{
-
-    display:block;
-
-}
-
-.workspace{
-
-    box-shadow:none;
-
-    border:none;
-
-}
-
+@media print {
+    header, .leftPanel, .rightPanel, .canvas-actions {
+        display: none !important;
+    }
+    body, .app-layout {
+        height: auto;
+        background: #fff;
+        overflow: visible;
+    }
+    .centerPanel {
+        width: 100%;
+        height: auto;
+    }
 }
