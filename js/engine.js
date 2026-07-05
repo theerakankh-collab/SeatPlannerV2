@@ -926,5 +926,173 @@ const StabilizerEngine = {
   }
 };
 
+/* =========================
+   PART 11: PRINT ENGINE
+   A4 / PDF EXPORT SYSTEM
+   ========================= */
+
+const PrintEngine = {
+
+  /* -------------------------
+     CONFIG A4 (pixels)
+     96 DPI approx
+  -------------------------- */
+  a4: {
+    width: 794,
+    height: 1123
+  },
+
+  /* -------------------------
+     PREPARE PRINT LAYOUT
+  -------------------------- */
+  preparePrint(seats, layout) {
+
+    // scale fit to A4
+    const scaleX = this.a4.width / layout.width;
+    const scaleY = this.a4.height / layout.height;
+    const scale = Math.min(scaleX, scaleY);
+
+    const clonedSeats = seats.map(seat => ({
+      ...seat,
+      x: seat.x * scale,
+      y: seat.y * scale
+    }));
+
+    return {
+      seats: clonedSeats,
+      layout: {
+        width: this.a4.width,
+        height: this.a4.height
+      },
+      scale
+    };
+  },
+
+  /* -------------------------
+     OPEN PRINT WINDOW
+  -------------------------- */
+  openPrintWindow(data) {
+    const win = window.open("", "_blank");
+
+    const html = `
+      <html>
+      <head>
+        <title>Seat Layout Print</title>
+        <style>
+          body {
+            margin: 0;
+            background: white;
+          }
+          .page {
+            width: ${this.a4.width}px;
+            height: ${this.a4.height}px;
+            position: relative;
+            border: 1px solid #ccc;
+          }
+          .seat {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            line-height: 40px;
+            font-size: 10px;
+            border: 1px solid #000;
+          }
+          .seat-head { background: #ffcccc; }
+          .seat-center { background: #ccffcc; }
+          .seat-normal { background: #ccccff; }
+        </style>
+      </head>
+      <body>
+        <div class="page" id="page"></div>
+
+        <script>
+          const seats = ${JSON.stringify(data.seats)};
+
+          const page = document.getElementById("page");
+
+          seats.forEach(s => {
+            const el = document.createElement("div");
+            el.className = "seat";
+
+            if (s.type === "HEAD") el.classList.add("seat-head");
+            else if (s.type === "CENTER") el.classList.add("seat-center");
+            else el.classList.add("seat-normal");
+
+            el.style.left = s.x + "px";
+            el.style.top = s.y + "px";
+
+            el.innerText = s.label || s.id;
+
+            page.appendChild(el);
+          });
+
+          window.onload = () => {
+            window.print();
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    win.document.write(html);
+    win.document.close();
+  },
+
+  /* -------------------------
+     EXPORT HTML FILE (offline print)
+  -------------------------- */
+  exportHTML(data) {
+    const html = `
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Seat Layout Export</title>
+        <style>
+          body { margin:0; background:#fff; }
+          .page {
+            width:${this.a4.width}px;
+            height:${this.a4.height}px;
+            position:relative;
+          }
+          .seat {
+            position:absolute;
+            width:40px;
+            height:40px;
+            text-align:center;
+            line-height:40px;
+            font-size:10px;
+            border:1px solid #000;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="page">
+          ${data.seats.map(s => `
+            <div class="seat ${
+              s.type === "HEAD" ? "seat-head" :
+              s.type === "CENTER" ? "seat-center" : "seat-normal"
+            }"
+            style="left:${s.x}px;top:${s.y}px;">
+              ${s.label || s.id}
+            </div>
+          `).join("")}
+        </div>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "seat-layout.html";
+    a.click();
+
+    URL.revokeObjectURL(url);
+  }
+};
+
 
 
