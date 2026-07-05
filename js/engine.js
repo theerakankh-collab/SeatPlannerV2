@@ -1,1329 +1,386 @@
-/*
-==========================================
-SeatPlanner V2
-Engine
-==========================================
-*/
-
-let layout = null;
-
-/*
-==========================================
-โหลด Layout
-==========================================
-*/
-
-async function loadLayout() {
-
-    try {
-
-        const response = await fetch("data/layout.json");
-
-        if (!response.ok) {
-            throw new Error("ไม่พบไฟล์ layout.json");
-        }
-
-        layout = await response.json();
-
-        console.log("Layout Loaded");
-
-    } catch (err) {
-
-        console.error(err);
-
-        alert("โหลดผังห้องไม่สำเร็จ");
-
-    }
-
-}
-
-/*
-==========================================
-คืนค่าลำดับที่นั่งทั้งหมด
-==========================================
-*/
-
-function getSeatOrder() {
-
-    if (!layout || !layout.tables) {
-
-        return [];
-
-    }
-
-    const order = [];
-
-    layout.tables
-        .sort((a, b) => a.priority - b.priority)
-        .forEach(table => {
-
-            table.seats.forEach(seat => {
-
-                order.push(seat);
-
-            });
-
-        });
-
-    return order;
-
-}
-
-/*
-==========================================
-จำนวนที่นั่งทั้งหมด
-==========================================
-*/
-
-function totalSeat() {
-
-    return getSeatOrder().length;
-
-}
-
-/*
-==========================================
-ค้นหาที่นั่ง
-==========================================
-*/
-
-function findSeat(id) {
-
-    const order = getSeatOrder();
-
-    return order.find(seat => seat === id);
-
-}
-
-/*
-==========================================
-ล้างการจัดที่นั่ง
-==========================================
-*/
-
-function clearSeat() {
-
-    if (!people) return;
-
-    people.forEach(person => {
-
-        person.seat = null;
-
-    });
-
-    if (typeof renderPeople === "function") {
-
-        renderPeople();
-
-    }
-
-}
-
-/*
-==========================================
-รีโหลดผัง
-==========================================
-*/
-
-async function reloadLayout() {
-
-    await loadLayout();
-
-}
-
-/*
-==========================================
-เริ่มต้นระบบ
-==========================================
-*/
-
-window.addEventListener("load", async () => {
-
-    await loadLayout();
-
-    console.log("SeatPlanner Engine Ready");
-
-    console.log("Total Seat :", totalSeat());
-
-});
-
 /*==========================================================
- Seat Planner Professional v4.0
- engine.js
- Part 1 : Engine Core
+ Seat Planner Professional v4.0 (Unified & Fixed)
+ engine.js - Core Engine
 ==========================================================*/
 
 "use strict";
 
-/*==========================================================
- Engine
-==========================================================*/
-
-const Engine={
-
-    version:"4.0",
-
-    ready:false,
-
-    running:false,
-
-    people:[],
-
-    seats:[],
-
-    result:[],
-
-    history:[],
-
-    priority:[],
-
-    statistics:{}
-
+// สเตตัสและโครงสร้างข้อมูลหลักของระบบ
+const Engine = {
+    version: "4.0",
+    ready: false,
+    running: false,
+    people: [],
+    seats: [],
+    result: [],
+    history: [],
+    priority: [],
+    statistics: {},
+    zone: {}          // ลงทะเบียน Zone API ไว้ที่นี่
 };
 
+// ข้อมูลจำลองสำหรับตัวแปรภายนอก (Mock/Fallback ในกรณีที่ไม่มี Object เหล่านี้จากภายนอก)
+const SeatAPI = window.SeatAPI || {
+    getAll: () => [],
+    getZone: (zone) => [],
+    clear: () => {},
+    assign: (seatId, person) => {},
+    refresh: () => {}
+};
+const APP = window.APP || { debug: true };
 
 /*==========================================================
- Initialize
+ Part 1 : Engine Core & Initialization
 ==========================================================*/
 
-function initializeEngine(){
-
-    Engine.people=[];
-
-    Engine.seats=[];
-
-    Engine.result=[];
-
-    Engine.history=[];
-
-    Engine.priority=[];
-
-    Engine.statistics={
-
-        totalPeople:0,
-
-        totalSeat:0,
-
-        assigned:0,
-
-        unassigned:0
-
+function initializeEngine() {
+    Engine.people = [];
+    Engine.seats = [];
+    Engine.result = [];
+    Engine.history = [];
+    Engine.priority = [];
+    Engine.statistics = {
+        totalPeople: 0,
+        totalSeat: 0,
+        assigned: 0,
+        unassigned: 0
     };
-
-    Engine.ready=true;
-
+    Engine.ready = true;
 }
 
-
-/*==========================================================
- Load Data
-==========================================================*/
-
-function loadPeople(data){
-
-    Engine.people=[...data];
-
-    Engine.statistics.totalPeople=
-
-        Engine.people.length;
-
+function loadPeople(data) {
+    if (Array.isArray(data)) {
+        Engine.people = [...data];
+        Engine.statistics.totalPeople = Engine.people.length;
+    }
 }
 
-
-function loadSeat(){
-
-    Engine.seats=
-
-        SeatAPI.getAll();
-
-    Engine.statistics.totalSeat=
-
-        Engine.seats.length;
-
+function loadSeat() {
+    Engine.seats = SeatAPI.getAll() || [];
+    Engine.statistics.totalSeat = Engine.seats.length;
 }
 
-
-/*==========================================================
- Reset
-==========================================================*/
-
-function resetEngine(){
-
-    Engine.result=[];
-
-    Engine.history=[];
-
-    Engine.running=false;
-
+function resetEngine() {
+    Engine.result = [];
+    Engine.history = [];
+    Engine.running = false;
 }
 
-
-/*==========================================================
- Ready
-==========================================================*/
-
-function engineReady(){
-
-    return
-
-        Engine.ready;
-
+function engineReady() {
+    return Engine.ready; // แก้ไข: นำขึ้นมาบรรทัดเดียวกันเพื่อป้องกัน Automatic Semicolon Insertion
 }
 
-
-/*==========================================================
- Start
-==========================================================*/
-
-function startEngine(){
-
-    if(
-
-        !Engine.ready
-
-    ){
-
+function startEngine(customPeopleData = []) {
+    if (!Engine.ready) {
         initializeEngine();
-
     }
-
     loadSeat();
-
-    loadPeople(
-
-        people
-
-    );
-
-    Engine.running=true;
-
-}
-
-
-/*==========================================================
- Stop
-==========================================================*/
-
-function stopEngine(){
-
-    Engine.running=false;
-
-}
-
-
-/*==========================================================
- Status
-==========================================================*/
-
-function engineStatus(){
-
-    return{
-
-        ready:
-
-        Engine.ready,
-
-        running:
-
-        Engine.running,
-
-        people:
-
-        Engine.people.length,
-
-        seat:
-
-        Engine.seats.length,
-
-        assigned:
-
-        Engine.statistics.assigned
-
-    };
-
-}
-
-
-/*==========================================================
- History
-==========================================================*/
-
-function pushHistory(data){
-
-    Engine.history.push(data);
-
-}
-
-
-function clearHistoryEngine(){
-
-    Engine.history=[];
-
-}
-
-
-/*==========================================================
- Logger
-==========================================================*/
-
-function log(message){
-
-    if(APP.debug){
-
-        console.log(
-
-            "[ENGINE]",
-
-            message
-
-        );
-
+    
+    // ตรวจสอบข้อมูลผู้เข้าร่วม: ถ้ามีข้อมูลส่งเข้ามาให้ใช้ หากไม่มีให้ใช้ข้อมูลเดิมใน Engine
+    if (customPeopleData && customPeopleData.length > 0) {
+        loadPeople(customPeopleData);
+    } else if (window.people) {
+        loadPeople(window.people);
     }
-
+    
+    Engine.running = true;
 }
 
-
-/*==========================================================
- Initialize
-==========================================================*/
-
-document.addEventListener(
-
-"DOMContentLoaded",
-
-()=>{
-
-initializeEngine();
-
-log("Engine Ready");
-
+function stopEngine() {
+    Engine.running = false;
 }
 
-);
+function engineStatus() {
+    return {
+        ready: Engine.ready,
+        running: Engine.running,
+        people: Engine.people.length,
+        seat: Engine.seats.length,
+        assigned: Engine.statistics.assigned
+    };
+}
+
+function pushHistory(data) {
+    Engine.history.push(data);
+}
+
+function clearHistoryEngine() {
+    Engine.history = [];
+}
+
+function log(message) {
+    if (APP.debug) {
+        console.log("[ENGINE]", message);
+    }
+}
+
+function clearSeat() {
+    if (!Engine.people) return;
+    Engine.people.forEach(person => {
+        person.seat = null;
+    });
+    if (typeof window.renderPeople === "function") {
+        window.renderPeople();
+    }
+}
 
 /*==========================================================
- Seat Planner Professional v4.0
- engine.js
  Part 2 : Priority Manager
 ==========================================================*/
 
-/*==========================================================
- Priority Definition
-==========================================================*/
+const PRIORITY_ORDER = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
-const PRIORITY_ORDER=[
+const PRIORITY_ZONE = {
+    1 : ["A"],
+    2 : ["A", "B"],
+    3 : ["A", "B", "C"],
+    4 : ["A", "B", "C", "D"],
+    5 : ["E", "F"],
+    6 : ["F", "G"],
+    7 : ["G", "H"],
+    8 : ["H"]
+};
 
-    "A",   // HeadCenter
-    "B",   // Left1
-    "C",   // Left2
-    "D",   // Left3
-    "E",   // Right1
-    "F",   // Right2
-    "G",   // Right3
-    "H"    // Upper1
-
-];
-
-
-/*==========================================================
- Build Priority List
-==========================================================*/
-
-function buildPriority(){
-
-    Engine.priority=[];
-
-    PRIORITY_ORDER.forEach(zone=>{
-
-        const seats=
-
-            SeatAPI.getZone(zone);
-
-        seats.forEach(seat=>{
-
+function buildPriority() {
+    Engine.priority = [];
+    PRIORITY_ORDER.forEach(zone => {
+        const seats = SeatAPI.getZone(zone) || [];
+        seats.forEach(seat => {
             Engine.priority.push(seat);
-
         });
-
     });
-
 }
 
-
-/*==========================================================
- Priority Seat Count
-==========================================================*/
-
-function priorityCount(){
-
+function priorityCount() {
     return Engine.priority.length;
-
 }
 
-
-/*==========================================================
- Get Priority Seat
-==========================================================*/
-
-function getPrioritySeat(index){
-
-    if(index<0) return null;
-
-    if(index>=Engine.priority.length)
-
-        return null;
-
+function getPrioritySeat(index) {
+    if (index < 0 || index >= Engine.priority.length) return null;
     return Engine.priority[index];
-
 }
 
-
-/*==========================================================
- Get Next Empty Seat
-==========================================================*/
-
-function nextPrioritySeat(){
-
-    for(const seat of Engine.priority){
-
-        if(
-
-            !seat.locked &&
-
-            seat.person==null
-
-        ){
-
+function nextPrioritySeat() {
+    for (const seat of Engine.priority) {
+        if (!seat.locked && seat.person === null) {
             return seat;
-
         }
-
     }
-
     return null;
-
 }
 
-
-/*==========================================================
- Get Zone Priority
-==========================================================*/
-
-function getZonePriority(zone){
-
-    return PRIORITY_ORDER.indexOf(zone)+1;
-
+function getZonePriority(zone) {
+    return PRIORITY_ORDER.indexOf(zone) + 1;
 }
 
-
-/*==========================================================
- Sort By Priority
-==========================================================*/
-
-function sortSeatPriority(){
-
-    Engine.seats.sort((a,b)=>{
-
-        const pa=
-
-            getZonePriority(a.zone);
-
-        const pb=
-
-            getZonePriority(b.zone);
-
-        if(pa!==pb){
-
-            return pa-pb;
-
-        }
-
-        return a.number-b.number;
-
+function sortSeatPriority() {
+    Engine.seats.sort((a, b) => {
+        const pa = getZonePriority(a.zone);
+        const pb = getZonePriority(b.zone);
+        if (pa !== pb) return pa - pb;
+        return (a.number || 0) - (b.number || 0);
     });
-
 }
 
-
-/*==========================================================
- Priority Summary
-==========================================================*/
-
-function prioritySummary(){
-
-    return PRIORITY_ORDER.map(zone=>{
-
-        const seats=
-
-            Engine.seats.filter(
-
-                s=>s.zone===zone
-
-            );
-
-        return{
-
-            zone:zone,
-
-            total:seats.length,
-
-            empty:seats.filter(
-
-                s=>!s.person
-
-            ).length,
-
-            locked:seats.filter(
-
-                s=>s.locked
-
-            ).length
-
+function prioritySummary() {
+    return PRIORITY_ORDER.map(zone => {
+        const seats = Engine.seats.filter(s => s.zone === zone);
+        return {
+            zone: zone,
+            total: seats.length,
+            empty: seats.filter(s => s.person === null || !s.person).length,
+            locked: seats.filter(s => s.locked).length
         };
-
     });
-
 }
 
-
-/*==========================================================
- Refresh Priority
-==========================================================*/
-
-function refreshPriority(){
-
+function refreshPriority() {
     loadSeat();
-
     sortSeatPriority();
-
     buildPriority();
-
 }
 
-
 /*==========================================================
- Initialize Priority
-==========================================================*/
-
-document.addEventListener(
-
-    "DOMContentLoaded",
-
-    ()=>{
-
-        refreshPriority();
-
-        log("Priority Ready");
-
-    }
-
-);
-
-/*==========================================================
- Seat Planner Professional v4.0
- engine.js
  Part 3 : Zone Manager
 ==========================================================*/
 
-/*==========================================================
- Zone Definition
-==========================================================*/
-
 const ZONES = {
-
-    A: {
-        code: "A",
-        name: "HeadCenter",
-        priority: 1
-    },
-
-    B: {
-        code: "B",
-        name: "Left1",
-        priority: 2
-    },
-
-    C: {
-        code: "C",
-        name: "Left2",
-        priority: 3
-    },
-
-    D: {
-        code: "D",
-        name: "Left3",
-        priority: 4
-    },
-
-    E: {
-        code: "E",
-        name: "Right1",
-        priority: 5
-    },
-
-    F: {
-        code: "F",
-        name: "Right2",
-        priority: 6
-    },
-
-    G: {
-        code: "G",
-        name: "Right3",
-        priority: 7
-    },
-
-    H: {
-        code: "H",
-        name: "Upper1",
-        priority: 8
-    }
-
+    A: { code: "A", name: "HeadCenter", priority: 1 },
+    B: { code: "B", name: "Left1", priority: 2 },
+    C: { code: "C", name: "Left2", priority: 3 },
+    D: { code: "D", name: "Left3", priority: 4 },
+    E: { code: "E", name: "Right1", priority: 5 },
+    F: { code: "F", name: "Right2", priority: 6 },
+    G: { code: "G", name: "Right3", priority: 7 },
+    H: { code: "H", name: "Upper1", priority: 8 }
 };
 
-
-/*==========================================================
- Get Zone
-==========================================================*/
-
-function getZone(code){
-
+function getZone(code) {
     return ZONES[code] || null;
-
 }
 
-
-/*==========================================================
- Get Seats By Zone
-==========================================================*/
-
-function getSeatsByZone(code){
-
-    return Engine.seats.filter(
-
-        seat => seat.zone === code
-
-    );
-
+function getSeatsByZone(code) {
+    return Engine.seats.filter(seat => seat.zone === code);
 }
 
-
-/*==========================================================
- Empty Seats
-==========================================================*/
-
-function getEmptySeatsByZone(code){
-
-    return getSeatsByZone(code).filter(
-
-        seat =>
-
-        !seat.locked &&
-
-        seat.person == null
-
-    );
-
+function getEmptySeatsByZone(code) {
+    return getSeatsByZone(code).filter(seat => !seat.locked && (seat.person === null || !seat.person));
 }
 
-
-/*==========================================================
- Occupied Seats
-==========================================================*/
-
-function getOccupiedSeatsByZone(code){
-
-    return getSeatsByZone(code).filter(
-
-        seat =>
-
-        seat.person != null
-
-    );
-
+function getOccupiedSeatsByZone(code) {
+    return getSeatsByZone(code).filter(seat => seat.person !== null && seat.person);
 }
 
-
-/*==========================================================
- Locked Seats
-==========================================================*/
-
-function getLockedSeatsByZone(code){
-
-    return getSeatsByZone(code).filter(
-
-        seat =>
-
-        seat.locked
-
-    );
-
+function getLockedSeatsByZone(code) {
+    return getSeatsByZone(code).filter(seat => seat.locked);
 }
 
-
-/*==========================================================
- Next Seat
-==========================================================*/
-
-function getNextSeat(zone){
-
+function getNextSeat(zone) {
     const list = getEmptySeatsByZone(zone);
-
-    if(list.length===0){
-
-        return null;
-
-    }
-
-    return list[0];
-
+    return list.length === 0 ? null : list[0];
 }
 
-
-/*==========================================================
- Zone Capacity
-==========================================================*/
-
-function zoneCapacity(zone){
-
+function zoneCapacity(zone) {
     return getSeatsByZone(zone).length;
-
 }
 
-
-/*==========================================================
- Zone Summary
-==========================================================*/
-
-function zoneSummary(){
-
-    return Object.keys(ZONES).map(code=>{
-
-        return{
-
+function zoneSummary() {
+    return Object.keys(ZONES).map(code => {
+        return {
             code,
-
-            name:ZONES[code].name,
-
-            priority:ZONES[code].priority,
-
-            total:getSeatsByZone(code).length,
-
-            occupied:getOccupiedSeatsByZone(code).length,
-
-            empty:getEmptySeatsByZone(code).length,
-
-            locked:getLockedSeatsByZone(code).length
-
+            name: ZONES[code].name,
+            priority: ZONES[code].priority,
+            total: getSeatsByZone(code).length,
+            occupied: getOccupiedSeatsByZone(code).length,
+            empty: getEmptySeatsByZone(code).length,
+            locked: getLockedSeatsByZone(code).length
         };
-
     });
-
 }
 
-
-/*==========================================================
- Refresh Zone
-==========================================================*/
-
-function refreshZone(){
-
-    refreshPriority();
-
-}
-
-
-/*==========================================================
- Zone API
-==========================================================*/
-
-Engine.zone={
-
-    get:getZone,
-
-    seats:getSeatsByZone,
-
-    empty:getEmptySeatsByZone,
-
-    occupied:getOccupiedSeatsByZone,
-
-    locked:getLockedSeatsByZone,
-
-    next:getNextSeat,
-
-    capacity:zoneCapacity,
-
-    summary:zoneSummary,
-
-    refresh:refreshZone
-
+// ผูกฟังก์ชันเข้ากับสเปซของ Engine.zone
+Engine.zone = {
+    get: getZone,
+    seats: getSeatsByZone,
+    empty: getEmptySeatsByZone,
+    occupied: getOccupiedSeatsByZone,
+    locked: getLockedSeatsByZone,
+    next: getNextSeat,
+    capacity: zoneCapacity,
+    summary: zoneSummary,
+    refresh: refreshPriority
 };
 
-
 /*==========================================================
- Zone Ready
+ Part 4 : Auto Seat Algorithm & Core Runner
 ==========================================================*/
 
-log("Zone Manager Ready");
+function getPersonPriority(person) {
+    if (person.pri !== undefined && person.pri !== null) return Number(person.pri);
+    if (person.priority !== undefined && person.priority !== null) return Number(person.priority);
+    return 8; // Default priority ต่ำสุด
+}
 
-/*==========================================================
- Seat Planner Professional v4.0
- engine.js
- Part 4 : Auto Seat Algorithm
-==========================================================*/
+function sortPeopleByPriority() {
+    Engine.people.sort((a, b) => getPersonPriority(a) - getPersonPriority(b));
+}
 
-/*==========================================================
- Auto Seat
-==========================================================*/
-
-function autoSeat(){
-
-    if(!Engine.running){
-
-        startEngine();
-
+function findSeatForPerson(person) {
+    // เลือกหาที่นั่งตามผัง Priority ของตัวบุคคลก่อน
+    const pri = getPersonPriority(person);
+    const zones = PRIORITY_ZONE[pri] || ["H"];
+    
+    for (const zone of zones) {
+        const seat = Engine.zone.next(zone);
+        if (seat) return seat;
     }
+    
+    // Fallback: หากไม่เจอโซนตาม Priority ให้ไล่หาโซนทั่วไปที่ยังว่างอยู่
+    for (const zone of PRIORITY_ORDER) {
+        const seat = Engine.zone.next(zone);
+        if (seat) return seat;
+    }
+    return null;
+}
 
+function autoSeat() {
+    if (!Engine.running) {
+        startEngine();
+    }
     refreshPriority();
-
-    Engine.result=[];
-
+    Engine.result = [];
     SeatAPI.clear();
 
     log("Auto Seat Start");
-
-    assignPriority();
-
-    finishAssign();
-
-}
-
-
-/*==========================================================
- Assign Priority
-==========================================================*/
-
-function assignPriority(){
-
-    Engine.people.forEach(person=>{
-
-        assignPerson(person);
-
-    });
-
-}
-
-
-/*==========================================================
- Assign Person
-==========================================================*/
-
-function assignPerson(person){
-
-    const seat=findSeat(person);
-
-    if(!seat){
-
-        Engine.result.push({
-
-            person,
-
-            status:"UNASSIGNED"
-
-        });
-
-        return;
-
-    }
-
-    SeatAPI.assign(
-
-        seat.id,
-
-        person
-
-    );
-
-    Engine.result.push({
-
-        person,
-
-        seat:seat.id,
-
-        status:"ASSIGNED"
-
-    });
-
-}
-
-
-/*==========================================================
- Find Seat
-==========================================================*/
-
-function findSeat(person){
-
-    const zones=PRIORITY_ORDER;
-
-    for(const zone of zones){
-
-        const seat=
-
-            Engine.zone.next(zone);
-
-        if(seat){
-
-            return seat;
-
-        }
-
-    }
-
-    return null;
-
-}
-
-
-/*==========================================================
- Finish
-==========================================================*/
-
-function finishAssign(){
-
-    Engine.statistics.assigned=
-
-        Engine.result.filter(
-
-            r=>r.status==="ASSIGNED"
-
-        ).length;
-
-    Engine.statistics.unassigned=
-
-        Engine.result.filter(
-
-            r=>r.status==="UNASSIGNED"
-
-        ).length;
-
-    SeatAPI.refresh();
-
-    log("Auto Seat Finish");
-
-}
-
-
-/*==========================================================
- Result
-==========================================================*/
-
-function getResult(){
-
-    return Engine.result;
-
-}
-
-
-/*==========================================================
- Assigned Count
-==========================================================*/
-
-function assignedCount(){
-
-    return Engine.statistics.assigned;
-
-}
-
-
-/*==========================================================
- Unassigned Count
-==========================================================*/
-
-function unassignedCount(){
-
-    return Engine.statistics.unassigned;
-
-}
-
-
-/*==========================================================
- Reset Result
-==========================================================*/
-
-function clearResult(){
-
-    Engine.result=[];
-
-}
-
-
-/*==========================================================
- Button
-==========================================================*/
-
-document.addEventListener(
-
-"DOMContentLoaded",
-
-()=>{
-
-const btn=
-
-document.getElementById(
-
-"btnAuto"
-
-);
-
-if(btn){
-
-btn.addEventListener(
-
-"click",
-
-autoSeat
-
-);
-
-}
-
-}
-
-);
-
-/*==========================================================
- Seat Planner Professional v4.0
- engine.js
- Part 5 : Priority Assignment Engine
-==========================================================*/
-
-/*==========================================================
- Priority Mapping
-==========================================================*/
-
-const PRIORITY_ZONE = {
-
-    1 : ["A"],
-    2 : ["A","B"],
-    3 : ["A","B","C"],
-    4 : ["A","B","C","D"],
-    5 : ["E","F"],
-    6 : ["F","G"],
-    7 : ["G","H"],
-    8 : ["H"]
-
-};
-
-
-/*==========================================================
- Get Priority
-==========================================================*/
-
-function getPersonPriority(person){
-
-    if(person.pri!=null){
-
-        return Number(person.pri);
-
-    }
-
-    if(person.priority!=null){
-
-        return Number(person.priority);
-
-    }
-
-    return 8;
-
-}
-
-
-/*==========================================================
- Sort People
-==========================================================*/
-
-function sortPeopleByPriority(){
-
-    Engine.people.sort((a,b)=>{
-
-        return getPersonPriority(a)-
-
-               getPersonPriority(b);
-
-    });
-
-}
-
-
-/*==========================================================
- Find Seat By Priority
-==========================================================*/
-
-function findSeatByPriority(person){
-
-    const pri=
-
-        getPersonPriority(person);
-
-    const zones=
-
-        PRIORITY_ZONE[pri] ||
-
-        ["H"];
-
-    for(const zone of zones){
-
-        const seat=
-
-        Engine.zone.next(zone);
-
-        if(seat){
-
-            return seat;
-
-        }
-
-    }
-
-    return null;
-
-}
-
-
-/*==========================================================
- Assign By Priority
-==========================================================*/
-
-function assignPrioritySeat(){
-
+    
+    // เรียงลำดับความสำคัญของคนก่อนจัดที่นั่ง
     sortPeopleByPriority();
 
-    Engine.result=[];
-
-    SeatAPI.clear();
-
-    Engine.people.forEach(person=>{
-
-        const seat=
-
-            findSeatByPriority(person);
-
-        if(!seat){
-
+    Engine.people.forEach(person => {
+        const seat = findSeatForPerson(person);
+        if (!seat) {
             Engine.result.push({
-
                 person,
-
-                seat:null,
-
-                status:"WAIT"
-
+                seat: null,
+                status: "UNASSIGNED"
             });
-
             return;
-
         }
 
-        SeatAPI.assign(
-
-            seat.id,
-
-            person
-
-        );
-
+        SeatAPI.assign(seat.id, person);
         Engine.result.push({
-
             person,
-
-            seat:seat.id,
-
-            status:"OK"
-
+            seat: seat.id,
+            status: "ASSIGNED"
         });
-
     });
 
+    finishAssign();
 }
 
-
-/*==========================================================
- Count Priority
-==========================================================*/
-
-function priorityStatistic(){
-
-    const stat={};
-
-    Engine.people.forEach(person=>{
-
-        const pri=
-
-        getPersonPriority(person);
-
-        if(!stat[pri]){
-
-            stat[pri]=0;
-
-        }
-
-        stat[pri]++;
-
-    });
-
-    return stat;
-
-}
-
-
-/*==========================================================
- Check Overflow
-==========================================================*/
-
-function checkPriorityOverflow(){
-
-    const wait=
-
-    Engine.result.filter(
-
-        r=>r.status==="WAIT"
-
-    );
-
-    return wait.length;
-
-}
-
-
-/*==========================================================
- Run Priority Engine
-==========================================================*/
-
-function runPriorityEngine(){
-
-    log("Priority Engine");
-
-    assignPrioritySeat();
-
+function finishAssign() {
+    Engine.statistics.assigned = Engine.result.filter(r => r.status === "ASSIGNED").length;
+    Engine.statistics.unassigned = Engine.result.filter(r => r.status === "UNASSIGNED").length;
     SeatAPI.refresh();
-
+    log("Auto Seat Finish");
 }
 
-
 /*==========================================================
- Engine API
+ Part 5 : Priority Assignment Engine Extensions
 ==========================================================*/
 
-Engine.priorityEngine={
+function priorityStatistic() {
+    const stat = {};
+    Engine.people.forEach(person => {
+        const pri = getPersonPriority(person);
+        stat[pri] = (stat[pri] || 0) + 1;
+    });
+    return stat;
+}
 
-    run:runPriorityEngine,
+function checkPriorityOverflow() {
+    return Engine.result.filter(r => r.status === "UNASSIGNED" || r.status === "WAIT").length;
+}
 
-    sort:sortPeopleByPriority,
-
-    statistic:priorityStatistic,
-
-    overflow:checkPriorityOverflow
-
+// ผูก Engine Extensions API
+Engine.priorityEngine = {
+    run: autoSeat,
+    sort: sortPeopleByPriority,
+    statistic: priorityStatistic,
+    overflow: checkPriorityOverflow
 };
 
+/*==========================================================
+ DOM Event Listeners (Application Bootstrap)
+==========================================================*/
 
+document.addEventListener("DOMContentLoaded", () => {
+    initializeEngine();
+    refreshPriority();
+    log("Engine & Priority Systems Ready");
+
+    const btn = document.getElementById("btnAuto");
+    if (btn) {
+        btn.addEventListener("click", autoSeat);
+    }
+});
