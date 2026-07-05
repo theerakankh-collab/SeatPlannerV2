@@ -1,103 +1,43 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-<title>Seat Planner Professional</title>
-
-<link rel="stylesheet"
-href="css/style.css">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seat Planner Professional</title>
+    <link rel="stylesheet" href="css/style.css">
+    
+    <script src="library/xlsx.full.min.js" defer></script>
+    <script src="js/app.js" defer></script>
 </head>
-
 <body>
 
 <header>
-
-<h1>
-
-Seat Planner Professional
-
-</h1>
-
+    <h1>Seat Planner Professional</h1>
 </header>
 
 <div class="container">
 
-<div class="card">
+    <div class="card">
+        <h2>นำเข้าข้อมูล</h2>
+        <input type="file" id="excelFile" accept=".xlsx,.xls">
+        <button id="importBtn">Import Excel</button>
+    </div>
 
-<h2>นำเข้าข้อมูล</h2>
+    <div class="card">
+        <h2>เครื่องมือ</h2>
+        <button id="createLayout">สร้างผัง</button>
+        <button id="saveProject">บันทึก</button>
+        <button id="loadProject">เปิด</button>
+        <button id="printLayout">พิมพ์</button>
+    </div>
 
-<input
-type="file"
-id="excelFile"
-accept=".xlsx,.xls">
-
-<button id="importBtn">
-
-Import Excel
-
-</button>
-
-</div>
-
-<div class="card">
-
-<h2>เครื่องมือ</h2>
-
-<button id="createLayout">
-
-สร้างผัง
-
-</button>
-
-<button id="saveProject">
-
-บันทึก
-
-</button>
-
-<button id="loadProject">
-
-เปิด
-
-</button>
-
-<button id="printLayout">
-
-พิมพ์
-
-</button>
+    <div class="card">
+        <h2>สรุป</h2>
+        <p>จำนวนผู้เข้าร่วม</p>
+        <p id="totalPeople">0 คน</p>
+    </div>
 
 </div>
-
-<div class="card">
-
-<h2>สรุป</h2>
-
-<p>
-
-จำนวนผู้เข้าร่วม
-
-</p>
-
-<p id="totalPeople">
-
-0 คน
-
-</p>
-
-</div>
-
-</div>
-
-<script src="library/xlsx.full.min.js"></script>
-
-<script src="js/app.js"></script>
 
 </body>
 </html>
