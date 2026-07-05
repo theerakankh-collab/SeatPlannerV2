@@ -401,4 +401,222 @@ log("Engine Ready");
 
 );
 
+/*==========================================================
+ Seat Planner Professional v4.0
+ engine.js
+ Part 2 : Priority Manager
+==========================================================*/
+
+/*==========================================================
+ Priority Definition
+==========================================================*/
+
+const PRIORITY_ORDER=[
+
+    "A",   // HeadCenter
+    "B",   // Left1
+    "C",   // Left2
+    "D",   // Left3
+    "E",   // Right1
+    "F",   // Right2
+    "G",   // Right3
+    "H"    // Upper1
+
+];
+
+
+/*==========================================================
+ Build Priority List
+==========================================================*/
+
+function buildPriority(){
+
+    Engine.priority=[];
+
+    PRIORITY_ORDER.forEach(zone=>{
+
+        const seats=
+
+            SeatAPI.getZone(zone);
+
+        seats.forEach(seat=>{
+
+            Engine.priority.push(seat);
+
+        });
+
+    });
+
+}
+
+
+/*==========================================================
+ Priority Seat Count
+==========================================================*/
+
+function priorityCount(){
+
+    return Engine.priority.length;
+
+}
+
+
+/*==========================================================
+ Get Priority Seat
+==========================================================*/
+
+function getPrioritySeat(index){
+
+    if(index<0) return null;
+
+    if(index>=Engine.priority.length)
+
+        return null;
+
+    return Engine.priority[index];
+
+}
+
+
+/*==========================================================
+ Get Next Empty Seat
+==========================================================*/
+
+function nextPrioritySeat(){
+
+    for(const seat of Engine.priority){
+
+        if(
+
+            !seat.locked &&
+
+            seat.person==null
+
+        ){
+
+            return seat;
+
+        }
+
+    }
+
+    return null;
+
+}
+
+
+/*==========================================================
+ Get Zone Priority
+==========================================================*/
+
+function getZonePriority(zone){
+
+    return PRIORITY_ORDER.indexOf(zone)+1;
+
+}
+
+
+/*==========================================================
+ Sort By Priority
+==========================================================*/
+
+function sortSeatPriority(){
+
+    Engine.seats.sort((a,b)=>{
+
+        const pa=
+
+            getZonePriority(a.zone);
+
+        const pb=
+
+            getZonePriority(b.zone);
+
+        if(pa!==pb){
+
+            return pa-pb;
+
+        }
+
+        return a.number-b.number;
+
+    });
+
+}
+
+
+/*==========================================================
+ Priority Summary
+==========================================================*/
+
+function prioritySummary(){
+
+    return PRIORITY_ORDER.map(zone=>{
+
+        const seats=
+
+            Engine.seats.filter(
+
+                s=>s.zone===zone
+
+            );
+
+        return{
+
+            zone:zone,
+
+            total:seats.length,
+
+            empty:seats.filter(
+
+                s=>!s.person
+
+            ).length,
+
+            locked:seats.filter(
+
+                s=>s.locked
+
+            ).length
+
+        };
+
+    });
+
+}
+
+
+/*==========================================================
+ Refresh Priority
+==========================================================*/
+
+function refreshPriority(){
+
+    loadSeat();
+
+    sortSeatPriority();
+
+    buildPriority();
+
+}
+
+
+/*==========================================================
+ Initialize Priority
+==========================================================*/
+
+document.addEventListener(
+
+    "DOMContentLoaded",
+
+    ()=>{
+
+        refreshPriority();
+
+        log("Priority Ready");
+
+    }
+
+);
+
 
