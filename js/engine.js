@@ -607,4 +607,118 @@ const PriorityEngine = {
   }
 };
 
+/* =========================
+   PART 8: EXCEL IMPORT ENGINE
+   ========================= */
+
+const ImportEngine = {
+
+  /* -------------------------
+     รับข้อมูลดิบจาก Excel
+     (array of objects)
+  -------------------------- */
+  loadExcelData(excelRows) {
+    if (!Array.isArray(excelRows)) {
+      console.error("Invalid Excel data");
+      return [];
+    }
+
+    return excelRows.map((row, index) => ({
+      id: row.id || index + 1,
+      name: row.name || "",
+      role: row.role || "NORMAL",
+      type: this.mapType(row.role),
+      raw: row
+    }));
+  },
+
+  /* -------------------------
+     map role → seat type
+     (แกนหลักของระบบ)
+  -------------------------- */
+  mapType(role) {
+    if (!role) return "CENTER";
+
+    const r = role.toString().toUpperCase().trim();
+
+    switch (r) {
+      case "HEADCENTER":
+        return "HEADCENTER";
+
+      case "HEAD":
+        return "HEAD";
+
+      case "A":
+        return "HEADCENTER";
+
+      case "B":
+      case "C":
+      case "D":
+      case "E":
+        return r;
+
+      case "UPPER1":
+        return "UPPER1";
+
+      // UPPER2 ถูกตัดออก → fallback
+      case "UPPER2":
+        return "CENTER";
+
+      default:
+        return "CENTER";
+    }
+  },
+
+  /* -------------------------
+     merge Excel → Seats
+  -------------------------- */
+  bindToSeats(excelData, seats) {
+    const mapped = this.loadExcelData(excelData);
+
+    return seats.map((seat, index) => {
+      const data = mapped[index];
+
+      if (!data) return seat;
+
+      return {
+        ...seat,
+        label: data.name,
+        type: data.type,
+        person: data
+      };
+    });
+  },
+
+  /* -------------------------
+     auto assign (เต็มระบบ)
+     - import Excel
+     - sort priority
+     - bind seats
+  -------------------------- */
+  autoAssign(excelRows, seats) {
+
+    // 1. map Excel
+    const mapped = this.loadExcelData(excelRows);
+
+    // 2. sort ตาม priority
+    const sortedPeople = PriorityEngine.sortSeats(mapped);
+
+    // 3. assign ลง seat
+    const updatedSeats = seats.map((seat, i) => {
+      const person = sortedPeople[i];
+
+      if (!person) return seat;
+
+      return {
+        ...seat,
+        label: person.name,
+        type: person.type,
+        person: person
+      };
+    });
+
+    return updatedSeats;
+  }
+};
+
 
