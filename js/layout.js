@@ -2491,5 +2491,259 @@ loadProject;
 
 );
 
+/*==========================================================
+  Part 6 : Engine API
+==========================================================*/
+
+/*==========================================================
+ Assign Person
+==========================================================*/
+
+function assignPerson(seatId, person){
+
+    const seat = getSeat(seatId);
+
+    if(!seat) return false;
+
+    if(seat.locked) return false;
+
+    seat.person = person;
+
+    seat.name =
+        person?.name ||
+        person?.["ชื่อ"] ||
+        "";
+
+    refreshSeat(seat);
+
+    updateStatistics();
+
+    return true;
+
+}
+
+
+/*==========================================================
+ Remove Person
+==========================================================*/
+
+function unassignPerson(seatId){
+
+    const seat = getSeat(seatId);
+
+    if(!seat) return;
+
+    seat.person = null;
+
+    seat.name = "";
+
+    refreshSeat(seat);
+
+}
+
+
+/*==========================================================
+ Seat Available
+==========================================================*/
+
+function isSeatAvailable(seatId){
+
+    const seat = getSeat(seatId);
+
+    if(!seat) return false;
+
+    return !seat.locked && seat.person == null;
+
+}
+
+
+/*==========================================================
+ Next Available Seat
+==========================================================*/
+
+function getNextAvailableSeat(){
+
+    for(const seat of seatLayout){
+
+        if(isSeatAvailable(seat.id)){
+
+            return seat;
+
+        }
+
+    }
+
+    return null;
+
+}
+
+
+/*==========================================================
+ Zone Available
+==========================================================*/
+
+function getAvailableSeatByZone(zone){
+
+    return seatLayout.filter(
+
+        seat=>
+
+        seat.zone===zone &&
+
+        !seat.locked &&
+
+        seat.person==null
+
+    );
+
+}
+
+
+/*==========================================================
+ Assign By Zone
+==========================================================*/
+
+function assignPersonToZone(zone,person){
+
+    const list=
+
+        getAvailableSeatByZone(zone);
+
+    if(list.length===0)
+
+        return false;
+
+    assignPerson(
+
+        list[0].id,
+
+        person
+
+    );
+
+    return true;
+
+}
+
+
+/*==========================================================
+ Get Seat Summary
+==========================================================*/
+
+function getSeatSummary(){
+
+    return{
+
+        total:seatLayout.length,
+
+        empty:getEmptySeats().length,
+
+        occupied:getOccupiedSeats().length,
+
+        locked:getLockedSeats().length
+
+    };
+
+}
+
+
+/*==========================================================
+ Refresh Seat
+==========================================================*/
+
+function refreshSeat(seat){
+
+    if(!seat)return;
+
+    seat.element
+        .querySelector(".seat-name")
+        .textContent=seat.name;
+
+    seat.element.classList.toggle(
+
+        "locked",
+
+        seat.locked
+
+    );
+
+}
+
+
+/*==========================================================
+ Refresh All
+==========================================================*/
+
+function refreshAll(){
+
+    seatLayout.forEach(
+
+        refreshSeat
+
+    );
+
+    updateStatistics();
+
+}
+
+
+/*==========================================================
+ Clear All Seat
+==========================================================*/
+
+function clearAllSeat(){
+
+    saveHistory();
+
+    seatLayout.forEach(seat=>{
+
+        seat.person=null;
+
+        seat.name="";
+
+    });
+
+    refreshAll();
+
+}
+
+
+/*==========================================================
+ Auto Seat API
+==========================================================*/
+
+const SeatAPI={
+
+    assign:assignPerson,
+
+    remove:unassignPerson,
+
+    refresh:refreshAll,
+
+    clear:clearAllSeat,
+
+    get:getSeat,
+
+    getAll:getAllSeats,
+
+    getEmpty:getEmptySeats,
+
+    getOccupied:getOccupiedSeats,
+
+    getLocked:getLockedSeats,
+
+    getAvailable:getAvailableSeats,
+
+    getZone:getZoneSeats,
+
+    getSummary:getSeatSummary,
+
+    next:getNextAvailableSeat,
+
+    assignZone:assignPersonToZone
+
+};
+
+
 
 
