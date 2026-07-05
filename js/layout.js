@@ -2071,5 +2071,425 @@ function(){
 
 );
 
+/*==========================================================
+  Part 5 : Project / Save / Load
+==========================================================*/
+
+/*==========================================================
+ Save Layout
+==========================================================*/
+
+function saveLayout(){
+
+    const data = seatLayout.map(seat=>({
+
+        id:seat.id,
+
+        zone:seat.zone,
+
+        number:seat.number,
+
+        name:seat.name,
+
+        person:seat.person,
+
+        locked:seat.locked
+
+    }));
+
+    localStorage.setItem(
+
+        STORAGE.LAYOUT,
+
+        JSON.stringify(data)
+
+    );
+
+}
+
+/*==========================================================
+ Load Layout
+==========================================================*/
+
+function loadLayout(){
+
+    const json=
+
+        localStorage.getItem(
+
+            STORAGE.LAYOUT
+
+        );
+
+    if(!json){
+
+        return false;
+
+    }
+
+    const data=
+
+        JSON.parse(json);
+
+    data.forEach(item=>{
+
+        const seat=getSeat(item.id);
+
+        if(!seat)return;
+
+        seat.person=item.person;
+
+        seat.name=item.name;
+
+        seat.locked=item.locked;
+
+    });
+
+    refreshLayout();
+
+    return true;
+
+}
+
+/*==========================================================
+ Save Project
+==========================================================*/
+
+function saveProject(){
+
+    const project={
+
+        version:APP.version,
+
+        date:new Date().toISOString(),
+
+        people:people,
+
+        layout:seatLayout.map(seat=>({
+
+            id:seat.id,
+
+            person:seat.person,
+
+            name:seat.name,
+
+            locked:seat.locked
+
+        }))
+
+    };
+
+    localStorage.setItem(
+
+        STORAGE.PROJECT,
+
+        JSON.stringify(project)
+
+    );
+
+    alert("บันทึกโครงการเรียบร้อย");
+
+}
+
+/*==========================================================
+ Load Project
+==========================================================*/
+
+function loadProject(){
+
+    const json=
+
+        localStorage.getItem(
+
+            STORAGE.PROJECT
+
+        );
+
+    if(!json){
+
+        alert("ไม่พบ Project");
+
+        return;
+
+    }
+
+    const project=
+
+        JSON.parse(json);
+
+    people=
+
+        project.people||[];
+
+    project.layout.forEach(item=>{
+
+        const seat=
+
+        getSeat(item.id);
+
+        if(!seat)return;
+
+        seat.person=item.person;
+
+        seat.name=item.name;
+
+        seat.locked=item.locked;
+
+    });
+
+    refreshLayout();
+
+    updateStatistics();
+
+}
+
+/*==========================================================
+ Export JSON
+==========================================================*/
+
+function exportProject(){
+
+    const blob=new Blob(
+
+        [
+
+            JSON.stringify(
+
+                {
+
+                    version:APP.version,
+
+                    people,
+
+                    layout:seatLayout
+
+                },
+
+                null,
+
+                2
+
+            )
+
+        ],
+
+        {
+
+            type:"application/json"
+
+        }
+
+    );
+
+    const url=
+
+        URL.createObjectURL(blob);
+
+    const a=
+
+        document.createElement("a");
+
+    a.href=url;
+
+    a.download="SeatPlanner.json";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+}
+
+/*==========================================================
+ Import JSON
+==========================================================*/
+
+function importProject(file){
+
+    const reader=
+
+        new FileReader();
+
+    reader.onload=function(e){
+
+        const data=
+
+        JSON.parse(
+
+            e.target.result
+
+        );
+
+        people=
+
+            data.people||[];
+
+        data.layout.forEach(item=>{
+
+            const seat=
+
+            getSeat(item.id);
+
+            if(!seat)return;
+
+            seat.person=item.person;
+
+            seat.name=item.name;
+
+            seat.locked=item.locked;
+
+        });
+
+        refreshLayout();
+
+        updateStatistics();
+
+    };
+
+    reader.readAsText(file);
+
+}
+
+/*==========================================================
+ Reset Project
+==========================================================*/
+
+function resetProject(){
+
+    if(
+
+        !confirm(
+
+            "ล้างข้อมูลทั้งหมด ?"
+
+        )
+
+    ){
+
+        return;
+
+    }
+
+    people=[];
+
+    clearSeat();
+
+    clearHistory();
+
+    updateStatistics();
+
+}
+
+/*==========================================================
+ Search Person
+==========================================================*/
+
+function searchPerson(name){
+
+    clearSelection();
+
+    const seat=
+
+        getSeatByName(name);
+
+    if(!seat){
+
+        alert("ไม่พบข้อมูล");
+
+        return;
+
+    }
+
+    highlightSeat(seat.id);
+
+}
+
+/*==========================================================
+ Dashboard
+==========================================================*/
+
+function dashboard(){
+
+    return{
+
+        people:people.length,
+
+        seats:seatLayout.length,
+
+        occupied:getOccupiedSeats().length,
+
+        empty:getEmptySeats().length,
+
+        locked:getLockedSeats().length
+
+    };
+
+}
+
+/*==========================================================
+ Auto Save
+==========================================================*/
+
+if(APP.autoSave){
+
+    setInterval(()=>{
+
+        saveLayout();
+
+        autoSaveHistory();
+
+    },
+
+    APP.autoSaveInterval
+
+    );
+
+}
+
+/*==========================================================
+ Button Event
+==========================================================*/
+
+document.addEventListener(
+
+"DOMContentLoaded",
+
+()=>{
+
+const saveBtn=
+
+document.getElementById(
+
+"saveProject"
+
+);
+
+if(saveBtn){
+
+saveBtn.onclick=
+
+saveProject;
+
+}
+
+const loadBtn=
+
+document.getElementById(
+
+"loadProject"
+
+);
+
+if(loadBtn){
+
+loadBtn.onclick=
+
+loadProject;
+
+}
+
+}
+
+);
+
 
 
