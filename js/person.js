@@ -116,4 +116,39 @@ function renderPersonList(){
 
 }
 
+function renderPeople() {
+
+    document.querySelectorAll(".seat").forEach(seat => {
+
+        seat.setAttribute("fill", "#90CAF9");
+
+    });
+
+    people.forEach(person => {
+
+        if (!person.seat) return;
+
+        const seat = document.querySelector(
+            `[data-id="${person.seat}"]`
+        );
+
+        if (!seat) return;
+
+        switch (person.type) {
+
+            case "president":
+                seat.setAttribute("fill", "#E53935");
+                break;
+
+            case "vip":
+                seat.setAttribute("fill", "#FBC02D");
+                break;
+
+            default:
+                seat.setAttribute("fill", "#43A047");
+        }
+
+    });
+
+}
 
