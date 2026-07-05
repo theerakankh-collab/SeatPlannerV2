@@ -1,745 +1,298 @@
-/* ==========================================================
-   Seat Planner Professional v3.2
-   File : js/layout.js
-   Part 1 : Create Layout
-========================================================== */
+/*==========================================================
+  Seat Planner Professional v3.2
+  layout.js
+==========================================================*/
 
 "use strict";
 
-const seatMapElement = document.getElementById("seatMap");
+/*==========================================================
+ Global
+==========================================================*/
 
-/* ==========================================================
-   Create Layout
-========================================================== */
+const seatMapElement =
+document.getElementById("seatMap");
 
-function createLayout() {
+let seatLayout=[];
 
-    if (!seatMapElement) {
+let selectedSeat=null;
 
-        console.error("ไม่พบ #seatMap");
+let dragSeat=null;
 
-        return;
 
-    }
-
-    seatMapElement.innerHTML = "";
-
-    seatLayout = [];
-
-    drawStage();
-
-    createAllZones();
-
-    updateStatistics();
-
-}
-
-/* ==========================================================
-   Stage
-========================================================== */
-
-function drawStage() {
-
-    const stage = document.createElement("div");
-
-    stage.className = "stage";
-
-    stage.textContent = HALL.stageTitle;
-
-    seatMapElement.appendChild(stage);
-
-}
-
-/* ==========================================================
-   Create All Zones
-========================================================== */
-
-function createAllZones() {
-
-    LAYOUT.forEach(zone => {
-
-        createZone(zone);
-
-    });
-
-}
-
-/* ==========================================================
-   Create Zone
-========================================================== */
-
-function createZone(zone) {
-
-    const section = document.createElement("section");
-
-    section.className = "zone";
-
-    section.dataset.zone = zone.code;
-
-    const title = document.createElement("h2");
-
-    title.className = "zone-title";
-
-    title.textContent =
-        `${zone.name} (${zone.seats})`;
-
-    section.appendChild(title);
-
-    const row = document.createElement("div");
-
-    row.className = "seat-row";
-
-    row.dataset.zone = zone.code;
-
-    for (let i = 1; i <= zone.seats; i++) {
-
-        row.appendChild(
-
-            createSeat(zone, i)
-
-        );
-
-    }
-
-    section.appendChild(row);
-
-    seatMapElement.appendChild(section);
-
-}
-
-/* ==========================================================
-   Create Seat
-========================================================== */
-
-function createSeat(zone, number) {
-
-    const seat = document.createElement("div");
-
-    seat.className =
-        `seat ${zone.type}`;
-
-    const code =
-        seatCode(zone.prefix, number);
-
-    seat.dataset.id = code;
-
-    seat.dataset.zone = zone.code;
-
-    seat.dataset.number = number;
-
-    seat.dataset.locked = "false";
-
-    seat.draggable = true;
-
-    const no = document.createElement("div");
-
-    no.className = "seat-number";
-
-    no.textContent = code;
-
-    const name = document.createElement("div");
-
-    name.className = "seat-name";
-
-    name.textContent = "";
-
-    seat.appendChild(no);
-
-    seat.appendChild(name);
-
-    seatLayout.push({
-
-        id: code,
-
-        zone: zone.code,
-
-        name: "",
-
-        person: null,
-
-        locked: false,
-
-        element: seat
-
-    });
-
-    seat.addEventListener(
-
-        "click",
-
-        () => selectSeat(code)
-
-    );
-
-    seat.addEventListener(
-
-        "dblclick",
-
-        () => toggleLock(code)
-
-    );
-
-    seat.addEventListener(
-
-        "dragstart",
-
-        dragStart
-
-    );
-
-    seat.addEventListener(
-
-        "dragover",
-
-        dragOver
-
-    );
-
-    seat.addEventListener(
-
-        "drop",
-
-        dropSeat
-
-    );
-
-    seat.addEventListener(
-
-        "dragend",
-
-        dragEnd
-
-    );
-
-    return seat;
-
-}
-
-/* ==========================================================
-   Select Seat
-========================================================== */
-
-function selectSeat(id) {
-
-    document
-        .querySelectorAll(".seat")
-        .forEach(seat => {
-
-            seat.classList.remove(
-
-                "selected"
-
-            );
-
-        });
-
-    const obj =
-        seatLayout.find(
-
-            x => x.id === id
-
-        );
-
-    if (!obj) return;
-
-    obj.element.classList.add(
-
-        "selected"
-
-    );
-
-    selectedSeat = obj;
-
-}
-
-/* ==========================================================
-   Lock Seat
-========================================================== */
-
-function toggleLock(id) {
-
-    const obj =
-        seatLayout.find(
-
-            x => x.id === id
-
-        );
-
-    if (!obj) return;
-
-    obj.locked = !obj.locked;
-
-    obj.element.dataset.locked =
-        obj.locked;
-
-    obj.element.classList.toggle(
-
-        "locked",
-
-        obj.locked
-
-    );
-
-}
-
-/* ==========================================================
-   Update Seat Name
-========================================================== */
-
-function updateSeatName(id, person) {
-
-    const obj =
-        seatLayout.find(
-
-            x => x.id === id
-
-        );
-
-    if (!obj) return;
-
-    obj.person = person;
-
-    obj.name = person?.name || "";
-
-    obj.element.querySelector(
-
-        ".seat-name"
-
-    ).textContent = obj.name;
-
-}
-
-/* ==========================================================
-   Clear Layout
-========================================================== */
-
-function clearLayout() {
-
-    seatLayout.forEach(seat => {
-
-        seat.person = null;
-
-        seat.name = "";
-
-        seat.locked = false;
-
-        seat.element.classList.remove(
-
-            "locked",
-
-            "selected"
-
-        );
-
-        seat.element.dataset.locked =
-            "false";
-
-        seat.element.querySelector(
-
-            ".seat-name"
-
-        ).textContent = "";
-
-    });
-
-}
-
-/* ==========================================================
-   Initialize
-========================================================== */
+/*==========================================================
+ Initialize
+==========================================================*/
 
 document.addEventListener(
 
-    "DOMContentLoaded",
+"DOMContentLoaded",
 
-    () => {
+()=>{
 
-        const btn =
-            document.getElementById(
+initializeLayout();
 
-                "createLayout"
-
-            );
-
-        if (btn) {
-
-            btn.addEventListener(
-
-                "click",
-
-                createLayout
-
-            );
-
-        }
-
-    }
+}
 
 );
 
-/* ==========================================================
-   Seat Planner Professional v3.2
-   layout.js
-   Part 2 : Render / Statistics / DragDrop
-========================================================== */
 
-"use strict";
+/*==========================================================
+ Initialize Layout
+==========================================================*/
 
-/* ==========================================================
-   Refresh Layout
-========================================================== */
+function initializeLayout(){
 
-function refreshLayout(){
+const btnCreate=
 
-    seatLayout.forEach(seat=>{
+document.getElementById(
 
-        const element=seat.element;
+"createLayout"
 
-        element.querySelector(".seat-name").textContent=
-            seat.name||"";
+);
 
-        if(seat.locked){
+if(btnCreate){
 
-            element.classList.add("locked");
+btnCreate.addEventListener(
 
-        }else{
+"click",
 
-            element.classList.remove("locked");
+createLayout
 
-        }
-
-    });
-
-    updateStatistics();
+);
 
 }
 
-/* ==========================================================
-   Statistics
-========================================================== */
+}
 
-function updateStatistics(){
 
-    statistics.totalSeats=seatLayout.length;
+/*==========================================================
+ Create Layout
+==========================================================*/
 
-    statistics.occupied=
-        seatLayout.filter(x=>x.person!=null).length;
+function createLayout(){
 
-    statistics.empty=
-        statistics.totalSeats-
-        statistics.occupied;
+if(!seatMapElement){
 
-    const total=document.getElementById("totalPeople");
+console.error(
 
-    if(total){
+"#seatMap not found"
 
-        total.textContent=
-            statistics.occupied+" คน";
+);
 
-    }
+return;
 
 }
 
-/* ==========================================================
-   Find Seat
-========================================================== */
+seatLayout=[];
 
-function findSeat(id){
+seatMapElement.innerHTML="";
 
-    return seatLayout.find(
+drawStage();
 
-        seat=>seat.id===id
+buildLayout();
 
-    );
+updateStatistics();
 
 }
 
-/* ==========================================================
-   Find Seat By Person
-========================================================== */
 
-function findSeatByPerson(name){
+/*==========================================================
+ Stage
+==========================================================*/
 
-    return seatLayout.find(
+function drawStage(){
 
-        seat=>seat.name===name
+const stage=
 
-    );
+document.createElement("div");
 
-}
+stage.className="stage";
 
-/* ==========================================================
-   Render People
-========================================================== */
+stage.innerHTML=
 
-function renderPeople(){
+`
 
-    if(!people.length)return;
+<div class="stage-title">
 
-    people.forEach((person,index)=>{
+${HALL.stageTitle}
 
-        if(index>=seatLayout.length)return;
+</div>
 
-        seatLayout[index].person=person;
+`;
 
-        seatLayout[index].name=
+seatMapElement.appendChild(
 
-            person.name||
+stage
 
-            person["ชื่อ"]||
-
-            "";
-
-    });
-
-    refreshLayout();
+);
 
 }
 
-/* ==========================================================
-   Drag & Drop
-========================================================== */
 
-let dragSource=null;
+/*==========================================================
+ Build Layout
+==========================================================*/
 
-function dragStart(e){
+function buildLayout(){
 
-    dragSource=this;
+buildHeadCenter();
 
-    this.classList.add("dragging");
+buildMainArea();
 
-    e.dataTransfer.effectAllowed="move";
-
-    e.dataTransfer.setData(
-
-        "text/plain",
-
-        this.dataset.id
-
-    );
+buildUpper();
 
 }
 
-function dragOver(e){
 
-    e.preventDefault();
+/*==========================================================
+ HeadCenter
+==========================================================*/
 
-    this.classList.add("over");
+function buildHeadCenter(){
 
-}
+const zone=
 
-function dragEnd(){
+LAYOUT.find(
 
-    this.classList.remove("dragging");
+z=>z.code==="A"
 
-    document
+);
 
-    .querySelectorAll(".seat")
+if(!zone)return;
 
-    .forEach(seat=>{
+const wrapper=
 
-        seat.classList.remove("over");
+document.createElement("section");
 
-    });
+wrapper.className=
 
-}
+"head-wrapper";
 
-function dropSeat(e){
+const title=
 
-    e.preventDefault();
+document.createElement("h2");
 
-    this.classList.remove("over");
+title.className=
 
-    const fromId=
+"zone-title";
 
-        e.dataTransfer.getData(
+title.textContent=
 
-            "text/plain"
+zone.name;
 
-        );
+wrapper.appendChild(title);
 
-    const toId=
+const row=
 
-        this.dataset.id;
+document.createElement("div");
 
-    if(fromId===toId)return;
+row.className=
 
-    swapSeat(fromId,toId);
+"head-row";
 
-}
+for(
 
-/* ==========================================================
-   Swap Seat
-========================================================== */
+let i=1;
 
-function swapSeat(fromId,toId){
+i<=zone.seats;
 
-    const from=findSeat(fromId);
+i++
 
-    const to=findSeat(toId);
+){
 
-    if(!from||!to)return;
+row.appendChild(
 
-    if(from.locked)return;
+createSeat(
 
-    if(to.locked)return;
+zone,
 
-    const person=from.person;
+i
 
-    const name=from.name;
+)
 
-    from.person=to.person;
-
-    from.name=to.name;
-
-    to.person=person;
-
-    to.name=name;
-
-    refreshLayout();
+);
 
 }
 
-/* ==========================================================
-   Highlight Seat
-========================================================== */
+wrapper.appendChild(row);
 
-function highlightSeat(id){
+seatMapElement.appendChild(
 
-    const seat=findSeat(id);
+wrapper
 
-    if(!seat)return;
-
-    seat.element.classList.add("selected");
-
-    setTimeout(()=>{
-
-        seat.element.classList.remove("selected");
-
-    },2000);
+);
 
 }
 
-/* ==========================================================
-   Clear Selection
-========================================================== */
 
-function clearSelection(){
+/*==========================================================
+ Main Area
+==========================================================*/
 
-    document
+function buildMainArea(){
 
-    .querySelectorAll(".seat")
+const main=
 
-    .forEach(seat=>{
+document.createElement("div");
 
-        seat.classList.remove(
+main.className=
 
-            "selected"
+"main-layout";
 
-        );
+const left=
 
-    });
+buildLeft();
 
-}
+const walkway=
 
-/* ==========================================================
-   Reset Layout
-========================================================== */
+buildWalkway();
 
-function resetLayout(){
+const right=
 
-    seatLayout.forEach(seat=>{
+buildRight();
 
-        seat.person=null;
+main.appendChild(left);
 
-        seat.name="";
+main.appendChild(walkway);
 
-    });
+main.appendChild(right);
 
-    refreshLayout();
+seatMapElement.appendChild(
 
-}
+main
 
-/* ==========================================================
-   Export Layout
-========================================================== */
-
-function exportLayout(){
-
-    return seatLayout.map(seat=>{
-
-        return{
-
-            seat:seat.id,
-
-            name:seat.name,
-
-            locked:seat.locked
-
-        };
-
-    });
+);
 
 }
 
-/* ==========================================================
-   Import Layout
-========================================================== */
 
-function importLayout(data){
+/*==========================================================
+ Walkway
+==========================================================*/
 
-    data.forEach(item=>{
+function buildWalkway(){
 
-        const seat=findSeat(item.seat);
+const div=
 
-        if(!seat)return;
+document.createElement("div");
 
-        seat.name=item.name;
+div.className=
 
-        seat.locked=item.locked;
+"walkway";
 
-    });
+div.innerHTML=
 
-    refreshLayout();
+`
 
-}
+<div>
 
-/* ==========================================================
-   Search Seat
-========================================================== */
+ทางเดิน
 
-function searchSeat(keyword){
+</div>
 
-    clearSelection();
+`;
 
-    if(!keyword)return;
-
-    seatLayout.forEach(seat=>{
-
-        if(
-
-            seat.name
-
-            .toLowerCase()
-
-            .includes(
-
-                keyword.toLowerCase()
-
-            )
-
-        ){
-
-            seat.element.classList.add(
-
-                "selected"
-
-            );
-
-        }
-
-    });
+return div;
 
 }
-
 
