@@ -1,6 +1,5 @@
 /* ==========================================================
-   Seat Planner Professional v4.0
-   style.css (Core App Architecture & Layout Elements)
+   Seat Planner Professional v4.1 (Production Ready)
 ========================================================== */
 
 * {
@@ -28,18 +27,25 @@
     --shadow: 0 2px 8px rgba(0,0,0,.12);
 }
 
+/* ==========================================================
+   BASE LAYOUT FIX (iPad / Safari Safe)
+========================================================== */
+
+html, body {
+    height: 100%;
+}
+
 body {
     font-family: "Segoe UI", Tahoma, sans-serif;
     background: var(--bg);
     color: var(--text);
+
+    overflow: hidden;
     height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden; /* ป้องกันการ Scroll นอกขอบจอหลัก */
 }
 
 /* ==========================================================
-   Header & Navigation (สอดคล้องกับโครงสร้างด้านบนสุด)
+   HEADER
 ========================================================== */
 
 header {
@@ -47,9 +53,11 @@ header {
     color: #fff;
     padding: 12px 20px;
     box-shadow: var(--shadow);
+
     display: flex;
     justify-content: space-between;
     align-items: center;
+
     height: 70px;
     z-index: 100;
 }
@@ -68,21 +76,22 @@ header nav {
 }
 
 /* ==========================================================
-   3-Panel Application Layout (ซ้าย, กลาง, ขวา)
+   3 PANEL LAYOUT
 ========================================================== */
 
 .app-layout {
     display: flex;
-    flex: 1;
     height: calc(100vh - 70px);
     overflow: hidden;
 }
 
-/* แผงด้านซ้ายและขวา (สอดคล้องกับ excel.js, person.js, dashboard.js) */
-.leftPanel, .rightPanel {
-    width: 320px;
+/* LEFT / RIGHT PANEL (Responsive Safe Width) */
+.leftPanel,
+.rightPanel {
+    width: clamp(260px, 22vw, 340px);
     background: var(--card);
     border-right: 1px solid var(--border);
+
     display: flex;
     flex-direction: column;
     padding: 18px;
@@ -94,19 +103,20 @@ header nav {
     border-left: 1px solid var(--border);
 }
 
-/* แผงแสดงผลหลักตรงกลาง (พื้นที่สำหรับ SVG Canvas) */
+/* CENTER CANVAS AREA */
 .centerPanel {
     flex: 1;
     position: relative;
     background: #eef2f5;
+
     overflow: hidden;
+    touch-action: none; /* สำคัญสำหรับ iPad drag/zoom */
 }
 
 /* ==========================================================
-   Components & Interactive Elements
+   INPUT / SEARCH
 ========================================================== */
 
-/* ฟอร์มและช่องค้นหา */
 .search-wrapper {
     width: 100%;
 }
@@ -118,24 +128,44 @@ input[type=text], select {
     border-radius: 8px;
     font-size: 14px;
     outline: none;
-    transition: border-color 0.2s;
+    transition: 0.2s;
 }
 
 input[type=text]:focus {
     border-color: var(--primary);
 }
 
-/* ส่วนแสดงลิสต์รายชื่อแบบสกรูล (Left Panel) */
+/* ==========================================================
+   LIST AREA
+========================================================== */
+
 .dynamic-list {
     flex: 1;
     overflow-y: auto;
+
     border: 1px dashed var(--border);
     border-radius: 8px;
+
     padding: 10px;
     background: #fafafa;
 }
 
-/* จุดแจงรายละเอียดข้อมูลที่นั่ง (Right Panel) */
+/* hover row */
+.dynamic-list div {
+    padding: 6px 8px;
+    border-radius: 6px;
+    transition: 0.15s;
+}
+
+.dynamic-list div:hover {
+    background: #eef2f5;
+    cursor: pointer;
+}
+
+/* ==========================================================
+   INFO PANEL
+========================================================== */
+
 .section-block {
     display: flex;
     flex-direction: column;
@@ -163,16 +193,17 @@ input[type=text]:focus {
 }
 
 /* ==========================================================
-   Buttons UI Core
+   BUTTONS
 ========================================================== */
 
-/* ปุ่มกดทั่วไปในเมนูบาร์ */
 .nav-btn {
     padding: 8px 16px;
     border: 1px solid rgba(255,255,255,0.3);
     border-radius: 6px;
+
     background: transparent;
     color: #fff;
+
     font-size: 14px;
     cursor: pointer;
     transition: .2s;
@@ -183,7 +214,12 @@ input[type=text]:focus {
     transform: translateY(-1px);
 }
 
-/* ปุ่มเด่นกระตุ้นการคำนวณรัน Auto Seat */
+/* active state (สำคัญกับ engine.js mode) */
+.nav-btn.active {
+    background: rgba(255,255,255,0.25);
+    border-color: #fff;
+}
+
 .btn-action {
     background: #fff !important;
     color: var(--primary) !important;
@@ -193,17 +229,18 @@ input[type=text]:focus {
 
 .btn-action:hover {
     background: var(--primary-light) !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: var(--shadow);
 }
 
-/* ปุ่มเสริมภายในแผงควบคุมด้านข้าง */
 .panel-btn {
     width: 100%;
     padding: 12px;
     border: none;
     border-radius: 8px;
+
     background: var(--primary);
     color: #fff;
+
     cursor: pointer;
     font-size: 15px;
     transition: .2s;
@@ -214,11 +251,11 @@ input[type=text]:focus {
 }
 
 /* ==========================================================
-   Dashboard Statistics Summary
+   DASHBOARD
 ========================================================== */
 
 .status-dashboard {
-    margin-top: auto; /* ดันกล่องสถิติลงไปข้างล่างสุดของพาเนล */
+    margin-top: auto;
     border-top: 1px solid var(--border);
     padding-top: 15px;
 }
@@ -243,54 +280,101 @@ input[type=text]:focus {
 .text-success { color: var(--success); }
 .text-warning { color: var(--warning); }
 
-/* Utility Badges */
+/* ==========================================================
+   BADGES
+========================================================== */
+
 .v-badge {
     display: inline-block;
     padding: 3px 8px;
     border-radius: 12px;
+
     background: rgba(255,255,255,0.2);
     color: white;
+
     font-size: 11px;
-    font-weight: normal;
 }
 
 .count-badge {
     font-size: 12px;
     color: var(--text-muted);
+
     background: var(--primary-light);
     padding: 3px 8px;
     border-radius: 12px;
 }
 
 /* ==========================================================
-   Responsive & Print Layout Media Rules
+   SEAT SYSTEM (IMPORTANT FOR ENGINE.JS)
 ========================================================== */
 
-@media(max-width: 1024px) {
+.seat {
+    transition: 0.2s;
+}
+
+.seat:hover {
+    opacity: 0.85;
+    cursor: pointer;
+}
+
+.seat.selected {
+    stroke: var(--primary);
+    stroke-width: 3;
+}
+
+.seat.occupied {
+    fill: var(--danger);
+}
+
+.seat.available {
+    fill: var(--success);
+}
+
+.seat.locked {
+    fill: #666;
+}
+
+/* ==========================================================
+   RESPONSIVE
+========================================================== */
+
+@media (max-width: 1024px) {
     .app-layout {
         flex-direction: column;
         overflow-y: auto;
     }
-    .leftPanel, .rightPanel {
+
+    .leftPanel,
+    .rightPanel {
         width: 100%;
-        height: auto;
         border: none;
         border-bottom: 1px solid var(--border);
     }
+
     .centerPanel {
         height: 600px;
     }
 }
 
+/* ==========================================================
+   PRINT MODE
+========================================================== */
+
 @media print {
-    header, .leftPanel, .rightPanel, .canvas-actions {
+    header,
+    .leftPanel,
+    .rightPanel,
+    .canvas-actions {
         display: none !important;
     }
-    body, .app-layout {
+
+    body,
+    .app-layout {
         height: auto;
         background: #fff;
         overflow: visible;
     }
+
     .centerPanel {
         width: 100%;
         height: auto;
