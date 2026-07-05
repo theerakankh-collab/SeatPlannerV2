@@ -1,6 +1,5 @@
 /* =====================================================
-   SEAT PLANNER ENGINE v2 (FINAL CLEAN VERSION)
-   A–H STRUCTURE + FULL SYSTEM
+   SEAT PLANNER ENGINE v2.1 (FINAL FIXED VERSION)
 ===================================================== */
 
 
@@ -9,14 +8,14 @@
 ========================= */
 const PriorityEngine = {
   rules: {
-    HEADCENTER: 1, // A
-    LEFT1: 2,      // B
-    LEFT2: 3,      // C
-    LEFT3: 4,      // D
-    RIGHT1: 5,     // E
-    RIGHT2: 6,     // F
-    RIGHT3: 7,     // G
-    UPPER1: 8      // H
+    HEADCENTER: 1,
+    LEFT1: 2,
+    LEFT2: 3,
+    LEFT3: 4,
+    RIGHT1: 5,
+    RIGHT2: 6,
+    RIGHT3: 7,
+    UPPER1: 8
   },
 
   getPriority(type) {
@@ -24,15 +23,15 @@ const PriorityEngine = {
   },
 
   sort(seats) {
-    return [...seats].sort((a, b) => {
-      return this.getPriority(a.type) - this.getPriority(b.type);
-    });
+    return [...seats].sort(
+      (a, b) => this.getPriority(a.type) - this.getPriority(b.type)
+    );
   }
 };
 
 
 /* =========================
-   IMPORT ENGINE (EXCEL)
+   IMPORT ENGINE
 ========================= */
 const ImportEngine = {
 
@@ -55,8 +54,8 @@ const ImportEngine = {
 
   load(rows) {
     return rows.map((r, i) => ({
-      id: r.id || i + 1,
-      name: r.name || "",
+      id: r.id ?? i + 1,
+      name: r.name ?? "",
       type: this.mapType(r.role),
       raw: r
     }));
@@ -67,7 +66,8 @@ const ImportEngine = {
 
     return seats.map((seat, i) => {
       const p = people[i];
-      if (!p) return seat;
+
+      if (!p) return { ...seat };
 
       return {
         ...seat,
@@ -81,7 +81,7 @@ const ImportEngine = {
 
 
 /* =========================
-   STABILIZER ENGINE
+   STABILIZER ENGINE (FIXED)
 ========================= */
 const StabilizerEngine = {
   grid: 20,
@@ -108,20 +108,25 @@ const StabilizerEngine = {
   },
 
   resolve(seats, size = 40) {
-    for (let i = 0; i < seats.length; i++) {
-      for (let j = i + 1; j < seats.length; j++) {
-        if (this.collide(seats[i], seats[j], size)) {
-          seats[j].x += size;
-          seats[j].y += size;
+    const result = [...seats];
+
+    for (let i = 0; i < result.length; i++) {
+      for (let j = i + 1; j < result.length; j++) {
+        if (this.collide(result[i], result[j], size)) {
+          result[j] = {
+            ...result[j],
+            x: result[j].x + size,
+            y: result[j].y + size
+          };
         }
       }
     }
-    return seats;
+
+    return result;
   },
 
   stabilize(seats) {
-    let s = this.apply(seats);
-    return this.resolve(s);
+    return this.resolve(this.apply(seats));
   }
 };
 
@@ -146,12 +151,8 @@ const PermissionEngine = {
   },
 
   applyUI(el, seat) {
-    const r = this.rules[seat.type];
-    if (!r) return;
-
-    if (r.locked) {
+    if (this.rules[seat.type]?.locked) {
       el.classList.add("seat-locked");
-      el.style.cursor = "not-allowed";
     }
   }
 };
@@ -175,13 +176,14 @@ const StorageEngine = {
 
 
 /* =========================
-   PRINT ENGINE
+   PRINT ENGINE (SAFE)
 ========================= */
 const PrintEngine = {
   a4: { width: 794, height: 1123 },
 
   open(state) {
     const w = window.open("", "_blank");
+    if (!w) return;
 
     const html = `
     <html>
@@ -206,11 +208,11 @@ const PrintEngine = {
       </style>
     </head>
     <body>
-      <div class="page" id="p"></div>
+      <div class="page"></div>
 
       <script>
-        const seats = ${JSON.stringify(state.seats)};
-        const p = document.getElementById("p");
+        const seats = ${JSON.stringify(state.seats || [])};
+        const p = document.querySelector(".page");
 
         seats.forEach(s => {
           const el = document.createElement("div");
@@ -233,6 +235,7 @@ const PrintEngine = {
     </html>
     `;
 
+    w.document.open();
     w.document.write(html);
     w.document.close();
   }
@@ -240,22 +243,25 @@ const PrintEngine = {
 
 
 /* =========================
-   MAIN ENGINE
+   MAIN ENGINE (FIXED CORE)
 ========================= */
 const Engine = {
 
   state: {
     seats: [],
     layout: { width: 1200, height: 700 },
-    container: null
+    container: null,
+    selected: null
   },
 
   init(containerId, layout, seats = []) {
     this.state.container = document.getElementById(containerId);
+    if (!this.state.container) return;
+
     this.state.layout = layout;
 
     const saved = StorageEngine.load();
-    this.state.seats = saved?.seats || seats;
+    this.state.seats = saved?.seats ?? seats;
 
     this.render();
   },
@@ -272,7 +278,7 @@ const Engine = {
     c.appendChild(base);
     this.base = base;
 
-    let seats = StabilizerEngine.stabilize(this.state.seats);
+    const seats = StabilizerEngine.stabilize(this.state.seats);
 
     seats.forEach(seat => {
       const el = document.createElement("div");
@@ -285,6 +291,10 @@ const Engine = {
       el.style.top = seat.y + "px";
 
       PermissionEngine.applyUI(el, seat);
+
+      el.addEventListener("click", () => {
+        this.state.selected = seat.id;
+      });
 
       if (PermissionEngine.canDrag(seat)) {
         this.attachDrag(el, seat);
@@ -300,15 +310,7 @@ const Engine = {
     let dragging = false;
     let ox = 0, oy = 0;
 
-    el.addEventListener("mousedown", (e) => {
-      if (!PermissionEngine.canDrag(seat)) return;
-
-      dragging = true;
-      ox = e.offsetX;
-      oy = e.offsetY;
-    });
-
-    document.addEventListener("mousemove", (e) => {
+    const move = (e) => {
       if (!dragging) return;
 
       const r = this.base.getBoundingClientRect();
@@ -318,11 +320,27 @@ const Engine = {
 
       el.style.left = seat.x + "px";
       el.style.top = seat.y + "px";
-    });
+    };
 
-    document.addEventListener("mouseup", () => {
+    const up = () => {
+      if (!dragging) return;
       dragging = false;
+
+      document.removeEventListener("mousemove", move);
+      document.removeEventListener("mouseup", up);
+
       StorageEngine.save(this.state);
+    };
+
+    el.addEventListener("mousedown", (e) => {
+      if (!PermissionEngine.canDrag(seat)) return;
+
+      dragging = true;
+      ox = e.offsetX;
+      oy = e.offsetY;
+
+      document.addEventListener("mousemove", move);
+      document.addEventListener("mouseup", up);
     });
   },
 
@@ -342,7 +360,7 @@ const Engine = {
 
 
 /* =========================
-   AUTO GENERATOR A–H
+   SEAT GENERATOR
 ========================= */
 function generateSeats() {
   const zones = [
