@@ -376,3 +376,370 @@ document.addEventListener(
     }
 
 );
+
+/* ==========================================================
+   Seat Planner Professional v3.2
+   layout.js
+   Part 2 : Render / Statistics / DragDrop
+========================================================== */
+
+"use strict";
+
+/* ==========================================================
+   Refresh Layout
+========================================================== */
+
+function refreshLayout(){
+
+    seatLayout.forEach(seat=>{
+
+        const element=seat.element;
+
+        element.querySelector(".seat-name").textContent=
+            seat.name||"";
+
+        if(seat.locked){
+
+            element.classList.add("locked");
+
+        }else{
+
+            element.classList.remove("locked");
+
+        }
+
+    });
+
+    updateStatistics();
+
+}
+
+/* ==========================================================
+   Statistics
+========================================================== */
+
+function updateStatistics(){
+
+    statistics.totalSeats=seatLayout.length;
+
+    statistics.occupied=
+        seatLayout.filter(x=>x.person!=null).length;
+
+    statistics.empty=
+        statistics.totalSeats-
+        statistics.occupied;
+
+    const total=document.getElementById("totalPeople");
+
+    if(total){
+
+        total.textContent=
+            statistics.occupied+" คน";
+
+    }
+
+}
+
+/* ==========================================================
+   Find Seat
+========================================================== */
+
+function findSeat(id){
+
+    return seatLayout.find(
+
+        seat=>seat.id===id
+
+    );
+
+}
+
+/* ==========================================================
+   Find Seat By Person
+========================================================== */
+
+function findSeatByPerson(name){
+
+    return seatLayout.find(
+
+        seat=>seat.name===name
+
+    );
+
+}
+
+/* ==========================================================
+   Render People
+========================================================== */
+
+function renderPeople(){
+
+    if(!people.length)return;
+
+    people.forEach((person,index)=>{
+
+        if(index>=seatLayout.length)return;
+
+        seatLayout[index].person=person;
+
+        seatLayout[index].name=
+
+            person.name||
+
+            person["ชื่อ"]||
+
+            "";
+
+    });
+
+    refreshLayout();
+
+}
+
+/* ==========================================================
+   Drag & Drop
+========================================================== */
+
+let dragSource=null;
+
+function dragStart(e){
+
+    dragSource=this;
+
+    this.classList.add("dragging");
+
+    e.dataTransfer.effectAllowed="move";
+
+    e.dataTransfer.setData(
+
+        "text/plain",
+
+        this.dataset.id
+
+    );
+
+}
+
+function dragOver(e){
+
+    e.preventDefault();
+
+    this.classList.add("over");
+
+}
+
+function dragEnd(){
+
+    this.classList.remove("dragging");
+
+    document
+
+    .querySelectorAll(".seat")
+
+    .forEach(seat=>{
+
+        seat.classList.remove("over");
+
+    });
+
+}
+
+function dropSeat(e){
+
+    e.preventDefault();
+
+    this.classList.remove("over");
+
+    const fromId=
+
+        e.dataTransfer.getData(
+
+            "text/plain"
+
+        );
+
+    const toId=
+
+        this.dataset.id;
+
+    if(fromId===toId)return;
+
+    swapSeat(fromId,toId);
+
+}
+
+/* ==========================================================
+   Swap Seat
+========================================================== */
+
+function swapSeat(fromId,toId){
+
+    const from=findSeat(fromId);
+
+    const to=findSeat(toId);
+
+    if(!from||!to)return;
+
+    if(from.locked)return;
+
+    if(to.locked)return;
+
+    const person=from.person;
+
+    const name=from.name;
+
+    from.person=to.person;
+
+    from.name=to.name;
+
+    to.person=person;
+
+    to.name=name;
+
+    refreshLayout();
+
+}
+
+/* ==========================================================
+   Highlight Seat
+========================================================== */
+
+function highlightSeat(id){
+
+    const seat=findSeat(id);
+
+    if(!seat)return;
+
+    seat.element.classList.add("selected");
+
+    setTimeout(()=>{
+
+        seat.element.classList.remove("selected");
+
+    },2000);
+
+}
+
+/* ==========================================================
+   Clear Selection
+========================================================== */
+
+function clearSelection(){
+
+    document
+
+    .querySelectorAll(".seat")
+
+    .forEach(seat=>{
+
+        seat.classList.remove(
+
+            "selected"
+
+        );
+
+    });
+
+}
+
+/* ==========================================================
+   Reset Layout
+========================================================== */
+
+function resetLayout(){
+
+    seatLayout.forEach(seat=>{
+
+        seat.person=null;
+
+        seat.name="";
+
+    });
+
+    refreshLayout();
+
+}
+
+/* ==========================================================
+   Export Layout
+========================================================== */
+
+function exportLayout(){
+
+    return seatLayout.map(seat=>{
+
+        return{
+
+            seat:seat.id,
+
+            name:seat.name,
+
+            locked:seat.locked
+
+        };
+
+    });
+
+}
+
+/* ==========================================================
+   Import Layout
+========================================================== */
+
+function importLayout(data){
+
+    data.forEach(item=>{
+
+        const seat=findSeat(item.seat);
+
+        if(!seat)return;
+
+        seat.name=item.name;
+
+        seat.locked=item.locked;
+
+    });
+
+    refreshLayout();
+
+}
+
+/* ==========================================================
+   Search Seat
+========================================================== */
+
+function searchSeat(keyword){
+
+    clearSelection();
+
+    if(!keyword)return;
+
+    seatLayout.forEach(seat=>{
+
+        if(
+
+            seat.name
+
+            .toLowerCase()
+
+            .includes(
+
+                keyword.toLowerCase()
+
+            )
+
+        ){
+
+            seat.element.classList.add(
+
+                "selected"
+
+            );
+
+        }
+
+    });
+
+}
+
+
