@@ -2744,6 +2744,284 @@ const SeatAPI={
 
 };
 
+/*==========================================================
+  Part 7 : Final Utility
+==========================================================*/
+
+/*==========================================================
+ Validate Layout
+==========================================================*/
+
+function validateLayout(){
+
+    const errors=[];
+
+    const used=new Set();
+
+    seatLayout.forEach(seat=>{
+
+        if(used.has(seat.id)){
+
+            errors.push(
+
+                "Duplicate Seat : "+seat.id
+
+            );
+
+        }
+
+        used.add(seat.id);
+
+    });
+
+    if(people.length>seatLayout.length){
+
+        errors.push(
+
+            "จำนวนคนมากกว่าจำนวนที่นั่ง"
+
+        );
+
+    }
+
+    return errors;
+
+}
+
+
+/*==========================================================
+ Get Layout Data
+==========================================================*/
+
+function getLayoutData(){
+
+    return seatLayout.map(seat=>({
+
+        id:seat.id,
+
+        zone:seat.zone,
+
+        number:seat.number,
+
+        name:seat.name,
+
+        locked:seat.locked
+
+    }));
+
+}
+
+
+/*==========================================================
+ Set Layout Data
+==========================================================*/
+
+function setLayoutData(data){
+
+    data.forEach(item=>{
+
+        const seat=getSeat(item.id);
+
+        if(!seat)return;
+
+        seat.name=item.name;
+
+        seat.locked=item.locked;
+
+    });
+
+    refreshAll();
+
+}
+
+
+/*==========================================================
+ Sort Seat
+==========================================================*/
+
+function sortSeat(){
+
+    seatLayout.sort((a,b)=>{
+
+        return a.id.localeCompare(b.id);
+
+    });
+
+}
+
+
+/*==========================================================
+ Seat Exists
+==========================================================*/
+
+function hasSeat(id){
+
+    return getSeat(id)!=null;
+
+}
+
+
+/*==========================================================
+ Person Exists
+==========================================================*/
+
+function hasPerson(name){
+
+    return getSeatByName(name)!=null;
+
+}
+
+
+/*==========================================================
+ Export CSV
+==========================================================*/
+
+function exportCSV(){
+
+    let csv="Seat,Name,Locked\n";
+
+    seatLayout.forEach(seat=>{
+
+        csv+=
+
+        seat.id+","+
+
+        '"' + seat.name + '"' + ","+
+
+        seat.locked+
+
+        "\n";
+
+    });
+
+    const blob=new Blob(
+
+        [csv],
+
+        {
+
+            type:"text/csv"
+
+        }
+
+    );
+
+    const url=
+
+    URL.createObjectURL(blob);
+
+    const a=
+
+    document.createElement("a");
+
+    a.href=url;
+
+    a.download="SeatPlanner.csv";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+}
+
+
+/*==========================================================
+ Print
+==========================================================*/
+
+function printLayout(){
+
+    window.print();
+
+}
+
+
+/*==========================================================
+ Reset Selection
+==========================================================*/
+
+function resetSelection(){
+
+    clearSelection();
+
+    clearMultiSelect();
+
+}
+
+
+/*==========================================================
+ Focus Seat
+==========================================================*/
+
+function focusSeat(id){
+
+    const seat=getSeat(id);
+
+    if(!seat)return;
+
+    seat.element.scrollIntoView({
+
+        behavior:"smooth",
+
+        block:"center"
+
+    });
+
+    highlightSeat(id);
+
+}
+
+
+/*==========================================================
+ Event Manager
+==========================================================*/
+
+function bindButton(){
+
+    const btnPrint=
+
+    document.getElementById(
+
+        "printLayout"
+
+    );
+
+    if(btnPrint){
+
+        btnPrint.onclick=
+
+        printLayout;
+
+    }
+
+}
+
+
+/*==========================================================
+ Initialize Event
+==========================================================*/
+
+document.addEventListener(
+
+"DOMContentLoaded",
+
+()=>{
+
+    bindButton();
+
+}
+
+
+/*==========================================================
+ Layout Ready
+==========================================================*/
+
+console.log(
+
+"Seat Planner Layout Ready"
+
+);
+
 
 
 
