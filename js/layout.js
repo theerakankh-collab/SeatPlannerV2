@@ -713,3 +713,384 @@ function refreshLayout(){
 
 }
 
+/*==========================================================
+  Part 3 : Seat Management
+==========================================================*/
+
+/*==========================================================
+ Select Seat
+==========================================================*/
+
+function selectSeat(id){
+
+    clearSelection();
+
+    const seat=getSeat(id);
+
+    if(!seat)return;
+
+    selectedSeat=seat;
+
+    seat.element.classList.add("selected");
+
+}
+
+/*==========================================================
+ Clear Selection
+==========================================================*/
+
+function clearSelection(){
+
+    document
+    .querySelectorAll(".seat")
+    .forEach(item=>{
+
+        item.classList.remove("selected");
+
+    });
+
+    selectedSeat=null;
+
+}
+
+/*==========================================================
+ Toggle Lock
+==========================================================*/
+
+function toggleLock(id){
+
+    const seat=getSeat(id);
+
+    if(!seat)return;
+
+    seat.locked=!seat.locked;
+
+    seat.element.classList.toggle(
+
+        "locked",
+
+        seat.locked
+
+    );
+
+}
+
+/*==========================================================
+ Lock Seat
+==========================================================*/
+
+function lockSeat(id){
+
+    const seat=getSeat(id);
+
+    if(!seat)return;
+
+    seat.locked=true;
+
+    seat.element.classList.add(
+
+        "locked"
+
+    );
+
+}
+
+/*==========================================================
+ Unlock Seat
+==========================================================*/
+
+function unlockSeat(id){
+
+    const seat=getSeat(id);
+
+    if(!seat)return;
+
+    seat.locked=false;
+
+    seat.element.classList.remove(
+
+        "locked"
+
+    );
+
+}
+
+/*==========================================================
+ Update Seat
+==========================================================*/
+
+function updateSeat(id,person){
+
+    const seat=getSeat(id);
+
+    if(!seat)return;
+
+    seat.person=person;
+
+    seat.name=
+
+        person?.name ||
+
+        person?.["ชื่อ"] ||
+
+        "";
+
+    seat.element
+        .querySelector(".seat-name")
+        .textContent=
+
+        seat.name;
+
+}
+
+/*==========================================================
+ Remove Person
+==========================================================*/
+
+function removePerson(id){
+
+    const seat=getSeat(id);
+
+    if(!seat)return;
+
+    seat.person=null;
+
+    seat.name="";
+
+    seat.element
+        .querySelector(".seat-name")
+        .textContent="";
+
+}
+
+/*==========================================================
+ Empty Seat
+==========================================================*/
+
+function emptySeat(id){
+
+    removePerson(id);
+
+}
+
+/*==========================================================
+ Get Empty Seats
+==========================================================*/
+
+function getEmptySeats(){
+
+    return seatLayout.filter(
+
+        seat=>seat.person==null
+
+    );
+
+}
+
+/*==========================================================
+ Get Occupied Seats
+==========================================================*/
+
+function getOccupiedSeats(){
+
+    return seatLayout.filter(
+
+        seat=>seat.person!=null
+
+    );
+
+}
+
+/*==========================================================
+ Statistics
+==========================================================*/
+
+function updateStatistics(){
+
+    statistics.totalSeats=
+
+        seatLayout.length;
+
+    statistics.occupied=
+
+        getOccupiedSeats().length;
+
+    statistics.empty=
+
+        getEmptySeats().length;
+
+    statistics.totalPeople=
+
+        people.length;
+
+    const total=
+
+        document.getElementById(
+
+            "totalPeople"
+
+        );
+
+    if(total){
+
+        total.textContent=
+
+        statistics.totalPeople+
+
+        " คน";
+
+    }
+
+}
+
+/*==========================================================
+ Highlight
+==========================================================*/
+
+function highlightSeat(id){
+
+    const seat=getSeat(id);
+
+    if(!seat)return;
+
+    seat.element.classList.add(
+
+        "selected"
+
+    );
+
+    setTimeout(()=>{
+
+        seat.element.classList.remove(
+
+            "selected"
+
+        );
+
+    },1500);
+
+}
+
+/*==========================================================
+ Search Seat
+==========================================================*/
+
+function searchSeat(keyword){
+
+    clearSelection();
+
+    if(!keyword)return;
+
+    keyword=
+
+    keyword.toLowerCase();
+
+    seatLayout.forEach(seat=>{
+
+        if(
+
+            seat.name
+
+            .toLowerCase()
+
+            .includes(keyword)
+
+        ){
+
+            seat.element.classList.add(
+
+                "selected"
+
+            );
+
+        }
+
+    });
+
+}
+
+/*==========================================================
+ Render People
+==========================================================*/
+
+function renderPeople(){
+
+    clearSeat();
+
+    people.forEach((person,index)=>{
+
+        if(index>=seatLayout.length)
+
+            return;
+
+        updateSeat(
+
+            seatLayout[index].id,
+
+            person
+
+        );
+
+    });
+
+    updateStatistics();
+
+}
+
+/*==========================================================
+ Get Seat Index
+==========================================================*/
+
+function getSeatIndex(id){
+
+    return seatLayout.findIndex(
+
+        seat=>seat.id===id
+
+    );
+
+}
+
+/*==========================================================
+ Get All Seat
+==========================================================*/
+
+function getAllSeats(){
+
+    return seatLayout;
+
+}
+
+/*==========================================================
+ Get Locked Seats
+==========================================================*/
+
+function getLockedSeats(){
+
+    return seatLayout.filter(
+
+        seat=>seat.locked
+
+    );
+
+}
+
+/*==========================================================
+ Get Available Seats
+==========================================================*/
+
+function getAvailableSeats(){
+
+    return seatLayout.filter(
+
+        seat=>
+
+        !seat.locked &&
+
+        seat.person==null
+
+    );
+
+}
+
+
