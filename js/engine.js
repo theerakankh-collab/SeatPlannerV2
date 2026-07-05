@@ -818,5 +818,113 @@ const StorageEngine = {
   }
 };
 
+/* =========================
+   PART 10: STABILIZER ENGINE
+   GRID SNAP + COLLISION + AUTO LAYOUT FIX
+   ========================= */
+
+const StabilizerEngine = {
+
+  /* -------------------------
+     GRID CONFIG
+  -------------------------- */
+  gridSize: 20,
+
+  /* -------------------------
+     SNAP TO GRID
+  -------------------------- */
+  snap(value) {
+    return Math.round(value / this.gridSize) * this.gridSize;
+  },
+
+  /* -------------------------
+     APPLY SNAP TO SEAT
+  -------------------------- */
+  snapSeat(seat) {
+    seat.x = this.snap(seat.x);
+    seat.y = this.snap(seat.y);
+    return seat;
+  },
+
+  /* -------------------------
+     ตรวจการชน (Collision Detection)
+     ป้องกันที่นั่งซ้อนกัน
+  -------------------------- */
+  isColliding(a, b, size = 40) {
+    return !(
+      a.x + size <= b.x ||
+      a.x >= b.x + size ||
+      a.y + size <= b.y ||
+      a.y >= b.y + size
+    );
+  },
+
+  /* -------------------------
+     แก้ collision อัตโนมัติ
+  -------------------------- */
+  resolveCollisions(seats, size = 40) {
+    for (let i = 0; i < seats.length; i++) {
+      for (let j = i + 1; j < seats.length; j++) {
+        const a = seats[i];
+        const b = seats[j];
+
+        if (this.isColliding(a, b, size)) {
+          // เลื่อน b ออกด้านขวา
+          b.x += size;
+          b.y += size;
+        }
+      }
+    }
+
+    return seats;
+  },
+
+  /* -------------------------
+     auto layout arrange
+     (เรียงเป็นแถวอัตโนมัติ)
+  -------------------------- */
+  autoLayout(seats, cols = 10, spacing = 60) {
+    let x = 0;
+    let y = 0;
+    let col = 0;
+
+    return seats.map((seat, index) => {
+
+      const newSeat = {
+        ...seat,
+        x: this.snap(x),
+        y: this.snap(y)
+      };
+
+      col++;
+
+      if (col >= cols) {
+        col = 0;
+        x = 0;
+        y += spacing;
+      } else {
+        x += spacing;
+      }
+
+      return newSeat;
+    });
+  },
+
+  /* -------------------------
+     stabilize ทั้งระบบ
+     (เรียกก่อน render)
+  -------------------------- */
+  stabilize(seats) {
+
+    // 1. snap ทุกตัว
+    let updated = seats.map(s => this.snapSeat(s));
+
+    // 2. fix collision
+    updated = this.resolveCollisions(updated);
+
+    return updated;
+  }
+};
+
 
 
