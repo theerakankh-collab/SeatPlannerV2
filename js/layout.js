@@ -3022,6 +3022,16 @@ console.log(
 
 );
 
+document.addEventListener("DOMContentLoaded", () => {
+    bindButton();
+});
+
+/*==========================================================
+ Layout Ready
+==========================================================*/
+
+console.log("Seat Planner Layout Ready");
+
 
 
 
