@@ -1094,5 +1094,90 @@ const PrintEngine = {
   }
 };
 
+/* =========================
+   PART 12: PERMISSION ENGINE
+   ROLE LOCK + SYSTEM PROTECTION
+   ========================= */
+
+const PermissionEngine = {
+
+  /* -------------------------
+     CONFIG สิทธิ์ตามประเภท
+  -------------------------- */
+  permissions: {
+    HEADCENTER: {
+      draggable: false,
+      editable: false,
+      locked: true
+    },
+    HEAD: {
+      draggable: false,
+      editable: false,
+      locked: true
+    },
+    CENTER: {
+      draggable: true,
+      editable: true,
+      locked: false
+    },
+    B: {
+      draggable: true,
+      editable: true,
+      locked: false
+    },
+    C: {
+      draggable: true,
+      editable: true,
+      locked: false
+    },
+    D: {
+      draggable: true,
+      editable: true,
+      locked: false
+    },
+    E: {
+      draggable: true,
+      editable: true,
+      locked: false
+    },
+    UPPER1: {
+      draggable: true,
+      editable: true,
+      locked: false
+    }
+  },
+
+  /* -------------------------
+     ตรวจสิทธิ์ลากได้ไหม
+  -------------------------- */
+  canDrag(seat) {
+    const rule = this.permissions[seat.type];
+    return rule ? rule.draggable : true;
+  },
+
+  /* -------------------------
+     ตรวจสิทธิ์แก้ไขข้อมูล
+  -------------------------- */
+  canEdit(seat) {
+    const rule = this.permissions[seat.type];
+    return rule ? rule.editable : true;
+  },
+
+  /* -------------------------
+     apply lock UI
+     (ใส่ class + disable interaction)
+  -------------------------- */
+  applyLockUI(el, seat) {
+    const rule = this.permissions[seat.type];
+
+    if (!rule) return;
+
+    if (rule.locked) {
+      el.classList.add("seat-locked");
+      el.style.cursor = "not-allowed";
+    }
+  }
+};
+
 
 
