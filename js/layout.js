@@ -1,230 +1,378 @@
-const svg = document.getElementById("room");
+/* ==========================================================
+   Seat Planner Professional v3.2
+   File : js/layout.js
+   Part 1 : Create Layout
+========================================================== */
 
-const viewport = document.getElementById("viewport");
+"use strict";
 
-const svgNS = "http://www.w3.org/2000/svg";
+const seatMapElement = document.getElementById("seatMap");
 
-function rect(x,y,w,h,color){
+/* ==========================================================
+   Create Layout
+========================================================== */
 
-const r=document.createElementNS(svgNS,"rect");
+function createLayout() {
 
-r.setAttribute("x",x);
+    if (!seatMapElement) {
 
-r.setAttribute("y",y);
+        console.error("ไม่พบ #seatMap");
 
-r.setAttribute("width",w);
+        return;
 
-r.setAttribute("height",h);
+    }
 
-r.setAttribute("fill",color);
+    seatMapElement.innerHTML = "";
 
-r.setAttribute("stroke","#333");
+    seatLayout = [];
 
-r.setAttribute("stroke-width","3");
+    drawStage();
 
-viewport.appendChild(r);
+    createAllZones();
 
-return r;
-
-}
-
-function chair(x,y,id){
-
-const c=document.createElementNS(svgNS,"circle");
-
-c.setAttribute("cx",x);
-
-c.setAttribute("cy",y);
-
-c.setAttribute("r",12);
-
-c.setAttribute("fill","#90CAF9");
-
-c.setAttribute("stroke","#0D47A1");
-
-c.dataset.id=id;
-
-c.classList.add("seat");
-
-c.setAttribute("draggable", true);
-
-svg.appendChild(c);
-
-return c;
+    updateStatistics();
 
 }
 
-const svg = document.getElementById("room");
-const svgNS = "http://www.w3.org/2000/svg";
+/* ==========================================================
+   Stage
+========================================================== */
 
-const seats = [];
+function drawStage() {
 
-function rect(x,y,w,h,color){
+    const stage = document.createElement("div");
 
-    const r=document.createElementNS(svgNS,"rect");
+    stage.className = "stage";
 
-    r.setAttribute("x",x);
-    r.setAttribute("y",y);
-    r.setAttribute("width",w);
-    r.setAttribute("height",h);
+    stage.textContent = HALL.stageTitle;
 
-    r.setAttribute("fill",color);
-
-    r.setAttribute("stroke","#333");
-    r.setAttribute("stroke-width","3");
-
-    svg.appendChild(r);
+    seatMapElement.appendChild(stage);
 
 }
 
-function chair(x,y,id){
+/* ==========================================================
+   Create All Zones
+========================================================== */
 
-    const c=document.createElementNS(svgNS,"circle");
+function createAllZones() {
 
-    c.setAttribute("cx",x);
+    LAYOUT.forEach(zone => {
 
-    c.setAttribute("cy",y);
-
-    c.setAttribute("r",13);
-
-    c.setAttribute("fill","#90CAF9");
-
-    c.setAttribute("stroke","#1565C0");
-
-    c.setAttribute("stroke-width","2");
-
-    c.dataset.id=id;
-
-    c.classList.add("seat");
-
-    viewport.appendChild(c);
-
-    const t=document.createElementNS(svgNS,"text");
-
-    t.setAttribute("x",x);
-
-    t.setAttribute("y",y+1);
-
-    t.setAttribute("class","seatText");
-
-    t.textContent=id;
-
-    viewport.appendChild(t);
-
-    seats.push({
-
-        id:id,
-
-        x:x,
-
-        y:y,
-
-        person:null
+        createZone(zone);
 
     });
 
 }
 
+/* ==========================================================
+   Create Zone
+========================================================== */
 
-function drawTable(x,y,w,h){
+function createZone(zone) {
 
-    rect(x,y,w,h,"#FFF8E1");
+    const section = document.createElement("section");
 
-}
+    section.className = "zone";
 
-function headTable(){
+    section.dataset.zone = zone.code;
 
-    drawTable(500,80,320,120);
+    const title = document.createElement("h2");
 
-    let n=1;
+    title.className = "zone-title";
 
-    for(let i=0;i<4;i++){
+    title.textContent =
+        `${zone.name} (${zone.seats})`;
 
-        chair(540+i*70,55,"A0"+n++);
+    section.appendChild(title);
 
-    }
+    const row = document.createElement("div");
 
-    chair(475,140,"A0"+n++);
+    row.className = "seat-row";
 
-    chair(845,140,"A0"+n++);
+    row.dataset.zone = zone.code;
 
-    for(let i=0;i<4;i++){
+    for (let i = 1; i <= zone.seats; i++) {
 
-        chair(540+i*70,225,"A"+String(n++).padStart(2,"0"));
+        row.appendChild(
 
-    }
+            createSeat(zone, i)
 
-}
-
-function centerTable(){
-
-    drawTable(650,300,250,500);
-
-    chair(775,270,"B01");
-
-    let n=2;
-
-    for(let i=0;i<8;i++){
-
-        chair(620,340+i*55,"B"+String(n++).padStart(2,"0"));
+        );
 
     }
 
-    for(let i=0;i<8;i++){
+    section.appendChild(row);
 
-        chair(930,340+i*55,"B"+String(n++).padStart(2,"0"));
+    seatMapElement.appendChild(section);
+
+}
+
+/* ==========================================================
+   Create Seat
+========================================================== */
+
+function createSeat(zone, number) {
+
+    const seat = document.createElement("div");
+
+    seat.className =
+        `seat ${zone.type}`;
+
+    const code =
+        seatCode(zone.prefix, number);
+
+    seat.dataset.id = code;
+
+    seat.dataset.zone = zone.code;
+
+    seat.dataset.number = number;
+
+    seat.dataset.locked = "false";
+
+    seat.draggable = true;
+
+    const no = document.createElement("div");
+
+    no.className = "seat-number";
+
+    no.textContent = code;
+
+    const name = document.createElement("div");
+
+    name.className = "seat-name";
+
+    name.textContent = "";
+
+    seat.appendChild(no);
+
+    seat.appendChild(name);
+
+    seatLayout.push({
+
+        id: code,
+
+        zone: zone.code,
+
+        name: "",
+
+        person: null,
+
+        locked: false,
+
+        element: seat
+
+    });
+
+    seat.addEventListener(
+
+        "click",
+
+        () => selectSeat(code)
+
+    );
+
+    seat.addEventListener(
+
+        "dblclick",
+
+        () => toggleLock(code)
+
+    );
+
+    seat.addEventListener(
+
+        "dragstart",
+
+        dragStart
+
+    );
+
+    seat.addEventListener(
+
+        "dragover",
+
+        dragOver
+
+    );
+
+    seat.addEventListener(
+
+        "drop",
+
+        dropSeat
+
+    );
+
+    seat.addEventListener(
+
+        "dragend",
+
+        dragEnd
+
+    );
+
+    return seat;
+
+}
+
+/* ==========================================================
+   Select Seat
+========================================================== */
+
+function selectSeat(id) {
+
+    document
+        .querySelectorAll(".seat")
+        .forEach(seat => {
+
+            seat.classList.remove(
+
+                "selected"
+
+            );
+
+        });
+
+    const obj =
+        seatLayout.find(
+
+            x => x.id === id
+
+        );
+
+    if (!obj) return;
+
+    obj.element.classList.add(
+
+        "selected"
+
+    );
+
+    selectedSeat = obj;
+
+}
+
+/* ==========================================================
+   Lock Seat
+========================================================== */
+
+function toggleLock(id) {
+
+    const obj =
+        seatLayout.find(
+
+            x => x.id === id
+
+        );
+
+    if (!obj) return;
+
+    obj.locked = !obj.locked;
+
+    obj.element.dataset.locked =
+        obj.locked;
+
+    obj.element.classList.toggle(
+
+        "locked",
+
+        obj.locked
+
+    );
+
+}
+
+/* ==========================================================
+   Update Seat Name
+========================================================== */
+
+function updateSeatName(id, person) {
+
+    const obj =
+        seatLayout.find(
+
+            x => x.id === id
+
+        );
+
+    if (!obj) return;
+
+    obj.person = person;
+
+    obj.name = person?.name || "";
+
+    obj.element.querySelector(
+
+        ".seat-name"
+
+    ).textContent = obj.name;
+
+}
+
+/* ==========================================================
+   Clear Layout
+========================================================== */
+
+function clearLayout() {
+
+    seatLayout.forEach(seat => {
+
+        seat.person = null;
+
+        seat.name = "";
+
+        seat.locked = false;
+
+        seat.element.classList.remove(
+
+            "locked",
+
+            "selected"
+
+        );
+
+        seat.element.dataset.locked =
+            "false";
+
+        seat.element.querySelector(
+
+            ".seat-name"
+
+        ).textContent = "";
+
+    });
+
+}
+
+/* ==========================================================
+   Initialize
+========================================================== */
+
+document.addEventListener(
+
+    "DOMContentLoaded",
+
+    () => {
+
+        const btn =
+            document.getElementById(
+
+                "createLayout"
+
+            );
+
+        if (btn) {
+
+            btn.addEventListener(
+
+                "click",
+
+                createLayout
+
+            );
+
+        }
 
     }
 
-}
-
-function smallTable(x,y,prefix){
-
-    drawTable(x,y,150,150);
-
-    let n=1;
-
-    chair(x+40,y-25,prefix+n++);
-
-    chair(x+110,y-25,prefix+n++);
-
-    chair(x-25,y+45,prefix+n++);
-
-    chair(x-25,y+105,prefix+n++);
-
-    chair(x+175,y+45,prefix+n++);
-
-    chair(x+175,y+105,prefix+n++);
-
-    chair(x+40,y+175,prefix+n++);
-
-    chair(x+110,y+175,prefix+n++);
-
-}
-
-function drawRoom(){
-
-    svg.innerHTML="";
-
-    rect(50,50,1500,900,"white");
-
-    headTable();
-
-    centerTable();
-
-    smallTable(170,300,"C");
-
-    smallTable(170,520,"D");
-
-    smallTable(170,740,"E");
-
-    smallTable(1180,300,"F");
-
-    smallTable(1180,520,"G");
-
-    smallTable(1180,740,"H");
-
-}
-
-drawRoom();
-
+);
