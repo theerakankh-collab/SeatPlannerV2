@@ -1,409 +1,228 @@
-/* ==========================================
-   Seat Planner Professional v3.2
-   seat.css
-========================================== */
+/* ==========================================================
+   Seat Planner Professional v4.0
+   seat.css (Unified SVG & Dashboard Interface)
+========================================================== */
 
-#seatMap{
-
-    display:grid;
-
-    gap:12px;
-
-    justify-content:center;
-
-    align-content:start;
-
-    padding:30px;
-
-    min-height:700px;
-
+/* Layout Workspace & Panels Structure */
+.app-layout {
+    display: flex;
+    height: calc(100vh - 70px); /* หักความสูงของ Header ออก */
+    overflow: hidden;
+    background-color: #f5f7fb;
 }
 
-/* ===================================== */
-
-.seat-row{
-
-    display:flex;
-
-    justify-content:center;
-
-    gap:10px;
-
+.leftPanel, .rightPanel {
+    width: 320px;
+    background: #ffffff;
+    border-right: 1px solid #e0e6ed;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-/* ===================================== */
-
-.seat{
-
-    width:70px;
-
-    height:70px;
-
-    border-radius:10px;
-
-    border:2px solid #999;
-
-    background:#ffffff;
-
-    cursor:pointer;
-
-    user-select:none;
-
-    display:flex;
-
-    flex-direction:column;
-
-    justify-content:center;
-
-    align-items:center;
-
-    transition:.25s;
-
-    position:relative;
-
-    font-size:13px;
-
-    font-weight:bold;
-
+.rightPanel {
+    border-right: none;
+    border-left: 1px solid #e0e6ed;
 }
 
-.seat:hover{
-
-    transform:scale(1.08);
-
-    box-shadow:0 4px 12px rgba(0,0,0,.25);
-
+.centerPanel {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: #eef2f5;
+    display: flex;
+    flex-direction: column;
 }
 
-/* ===================================== */
-
-.seat-number{
-
-    font-size:15px;
-
-    font-weight:bold;
-
+/* Canvas & SVG Container */
+#canvas {
+    width: 100%;
+    height: 100%;
+    cursor: grab;
 }
 
-.seat-name{
-
-    font-size:11px;
-
-    margin-top:4px;
-
-    text-align:center;
-
-    overflow:hidden;
-
-    white-space:nowrap;
-
-    width:90%;
-
-    text-overflow:ellipsis;
-
+#canvas:active {
+    cursor: grabbing;
 }
 
-/* ===================================== */
-/* ประธาน */
+/* ==========================================================
+   SVG Interactive Elements (โต๊ะ และ เก้าอี้ บนระบบ SVG)
+========================================================== */
 
-.seat.head{
-
-    background:#FFD700;
-
-    border-color:#CC9900;
-
-    color:#000;
-
+/* สไตล์เก้าอี้หลัก (SVG Tag: <rect> หรือ <circle>) */
+.svg-seat {
+    fill: #ffffff;
+    stroke: #90A4AE;
+    stroke-width: 2px;
+    cursor: pointer;
+    transition: fill 0.2s, stroke 0.2s, transform 0.2s;
+    transform-origin: center;
 }
 
-/* HeadCenter */
-
-.seat.headcenter{
-
-    background:#FF9800;
-
-    border-color:#E65100;
-
-    color:white;
-
+.svg-seat:hover {
+    filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.2));
 }
 
-/* Upper1 */
-
-.seat.upper1{
-
-    background:#42A5F5;
-
-    border-color:#1565C0;
-
-    color:white;
-
+/* ข้อความบน SVG เก้าอี้ (<text>) */
+.svg-seat-text {
+    font-size: 12px;
+    font-weight: bold;
+    fill: #37474F;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    pointer-events: none; /* ป้องกันการแย่ง Focus ลากวาง */
+    user-select: none;
 }
 
-/* VIP */
+/* ==========================================================
+   Seat Colors Theme (สอดคล้องกับผัง Zone ใน Engine และสีเดิม)
+========================================================== */
 
-.seat.vip{
+/* ประธาน / HeadCenter (Zone A) */
+.svg-seat.headcenter, .color-headcenter { fill: #FF9800; stroke: #E65100; }
+.svg-seat.headcenter + text { fill: #ffffff; }
 
-    background:#7E57C2;
+/* Upper1 (Zone H) */
+.svg-seat.upper1, .color-upper1 { fill: #42A5F5; stroke: #1565C0; }
+.svg-seat.upper1 + text { fill: #ffffff; }
 
-    border-color:#4527A0;
+/* VIP (คัดกรองจากพาร์ท 6 ของ Engine) */
+.svg-seat.vip, .color-vip { fill: #7E57C2; stroke: #4527A0; }
+.svg-seat.vip + text { fill: #ffffff; }
 
-    color:white;
+/* ผู้ร่วมพิธีทั่วไป (Normal โซนอื่นๆ) */
+.svg-seat.normal, .color-normal { fill: #ECEFF1; stroke: #90A4AE; }
+.svg-seat.normal + text { fill: #37474F; }
 
+/* เก้าอี้ว่าง */
+.svg-seat.empty {
+    fill: #fafafa;
+    stroke: #cccccc;
+    stroke-dasharray: 4,4;
+}
+.svg-seat.empty + text { fill: #bbb; }
+
+/* ==========================================================
+   Special Status Classes (ระบบล็อก, เลือก, สลับ และลากวาง)
+========================================================== */
+
+/* ปรับระบบสไตล์ล็อกให้เข้ากับเส้น SVG Vector */
+.svg-seat.locked {
+    stroke: #ff0000 !important;
+    stroke-width: 3px !important;
 }
 
-/* ผู้ร่วมพิธี */
-
-.seat.normal{
-
-    background:#ECEFF1;
-
-    border-color:#90A4AE;
-
+/* เลือกที่นั่ง (สอดคล้องกับ seat.js) */
+.svg-seat.selected {
+    stroke: #00C853 !important;
+    stroke-width: 4px !important;
 }
 
-/* ===================================== */
-
-.seat.locked{
-
-    border:3px solid red;
-
+/* กำลังถูกลาก / ตัวรับการวาง (สอดคล้องกับ dragdrop.js) */
+.svg-seat.dragging {
+    opacity: 0.4;
 }
 
-.seat.locked::after{
-
-    content:"🔒";
-
-    position:absolute;
-
-    top:3px;
-
-    right:4px;
-
-    font-size:14px;
-
+.svg-seat.over {
+    stroke: #1976D2 !important;
+    stroke-width: 3px !important;
+    stroke-dasharray: 5,3;
 }
 
-/* ===================================== */
+/* ==========================================================
+   UI Controls Components (ปุ่ม, ป้ายสถานะ และสถิติ)
+========================================================== */
 
-.seat.empty{
-
-    background:#fafafa;
-
-    border:2px dashed #cccccc;
-
-    color:#bbb;
-
+/* แผงควบคุมซูมมิ่งของไฟล์ zoom.js */
+.canvas-actions {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
 }
 
-/* ===================================== */
-
-.seat.selected{
-
-    outline:4px solid #00C853;
-
+.canvas-actions button {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid #cfd8dc;
+    background: #ffffff;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    transition: all 0.2s;
 }
 
-.seat.dragging{
-
-    opacity:.4;
-
+.canvas-actions button:hover {
+    background: #f5f7fb;
+    transform: translateY(-2px);
 }
 
-.seat.over{
-
-    outline:3px dashed #1976D2;
-
+/* ป้ายสถานะรุ่นเวอร์ชัน และตัวเลขสถิติแดชบอร์ด */
+.v-badge {
+    font-size: 12px;
+    background: #1565C0;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    vertical-align: middle;
 }
 
-/* ===================================== */
-
-.zone-title{
-
-    text-align:center;
-
-    font-size:22px;
-
-    font-weight:bold;
-
-    margin:20px 0;
-
-    color:#1565C0;
-
+.count-badge {
+    font-size: 13px;
+    background: #eef2f5;
+    padding: 4px 10px;
+    border-radius: 20px;
+    color: #546E7A;
 }
 
-/* ===================================== */
-
-.table-name{
-
-    width:120px;
-
-    text-align:center;
-
-    font-weight:bold;
-
-    margin:auto;
-
-    padding:6px;
-
-    border-radius:6px;
-
-    background:#1565C0;
-
-    color:white;
-
+.status-dashboard .stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f4f8;
 }
 
-/* ===================================== */
+.text-success { color: #00C853; }
+.text-warning { color: #FF9800; }
 
-.walkway{
+/* ==========================================================
+   Static Layout Background (เวที และ สิ่งปลูกสร้าง)
+========================================================== */
 
-    width:50px;
-
+.svg-stage {
+    fill: #37474F;
+    rx: 8px; /* ทำมุมโค้งมนบนเวที SVG */
 }
 
-.space{
-
-    width:30px;
-
+.svg-stage-text {
+    fill: #ffffff;
+    font-size: 20px;
+    font-weight: bold;
+    text-anchor: middle;
+    dominant-baseline: middle;
 }
 
-/* ===================================== */
-
-.legend{
-
-    display:flex;
-
-    flex-wrap:wrap;
-
-    gap:12px;
-
-    margin:20px;
-
-}
-
-.legend-item{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:8px;
-
-}
-
-.legend-color{
-
-    width:20px;
-
-    height:20px;
-
-    border-radius:4px;
-
-}
-
-/* ===================================== */
-
-.color-head{
-
-    background:#FFD700;
-
-}
-
-.color-headcenter{
-
-    background:#FF9800;
-
-}
-
-.color-upper1{
-
-    background:#42A5F5;
-
-}
-
-.color-vip{
-
-    background:#7E57C2;
-
-}
-
-.color-normal{
-
-    background:#ECEFF1;
-
-}
-
-/* ===================================== */
-
-.stage{
-
-    width:600px;
-
-    height:60px;
-
-    margin:auto;
-
-    margin-bottom:30px;
-
-    border-radius:10px;
-
-    background:#37474F;
-
-    color:white;
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    font-size:24px;
-
-    font-weight:bold;
-
-}
-
-/* ===================================== */
-
-@media(max-width:1000px){
-
-.seat{
-
-    width:55px;
-
-    height:55px;
-
-}
-
-.seat-name{
-
-    display:none;
-
-}
-
-}
-
-/* ===================================== */
-
-@media print{
-
-.seat{
-
-    box-shadow:none;
-
-}
-
-.seat:hover{
-
-    transform:none;
-
-}
-
-.legend{
-
-    display:none;
-
-}
-
+/* ==========================================================
+   Media Print
+========================================================== */
+@media print {
+    header, .leftPanel, .rightPanel, .canvas-actions {
+        display: none !important;
+    }
+    .app-layout {
+        height: auto;
+        background: #ffffff;
+    }
+    .centerPanel {
+        width: 100%;
+        height: auto;
+    }
+    #canvas svg {
+        width: 100% !important;
+        height: auto !important;
+    }
 }
