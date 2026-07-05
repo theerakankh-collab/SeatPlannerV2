@@ -619,4 +619,251 @@ document.addEventListener(
 
 );
 
+/*==========================================================
+ Seat Planner Professional v4.0
+ engine.js
+ Part 3 : Zone Manager
+==========================================================*/
+
+/*==========================================================
+ Zone Definition
+==========================================================*/
+
+const ZONES = {
+
+    A: {
+        code: "A",
+        name: "HeadCenter",
+        priority: 1
+    },
+
+    B: {
+        code: "B",
+        name: "Left1",
+        priority: 2
+    },
+
+    C: {
+        code: "C",
+        name: "Left2",
+        priority: 3
+    },
+
+    D: {
+        code: "D",
+        name: "Left3",
+        priority: 4
+    },
+
+    E: {
+        code: "E",
+        name: "Right1",
+        priority: 5
+    },
+
+    F: {
+        code: "F",
+        name: "Right2",
+        priority: 6
+    },
+
+    G: {
+        code: "G",
+        name: "Right3",
+        priority: 7
+    },
+
+    H: {
+        code: "H",
+        name: "Upper1",
+        priority: 8
+    }
+
+};
+
+
+/*==========================================================
+ Get Zone
+==========================================================*/
+
+function getZone(code){
+
+    return ZONES[code] || null;
+
+}
+
+
+/*==========================================================
+ Get Seats By Zone
+==========================================================*/
+
+function getSeatsByZone(code){
+
+    return Engine.seats.filter(
+
+        seat => seat.zone === code
+
+    );
+
+}
+
+
+/*==========================================================
+ Empty Seats
+==========================================================*/
+
+function getEmptySeatsByZone(code){
+
+    return getSeatsByZone(code).filter(
+
+        seat =>
+
+        !seat.locked &&
+
+        seat.person == null
+
+    );
+
+}
+
+
+/*==========================================================
+ Occupied Seats
+==========================================================*/
+
+function getOccupiedSeatsByZone(code){
+
+    return getSeatsByZone(code).filter(
+
+        seat =>
+
+        seat.person != null
+
+    );
+
+}
+
+
+/*==========================================================
+ Locked Seats
+==========================================================*/
+
+function getLockedSeatsByZone(code){
+
+    return getSeatsByZone(code).filter(
+
+        seat =>
+
+        seat.locked
+
+    );
+
+}
+
+
+/*==========================================================
+ Next Seat
+==========================================================*/
+
+function getNextSeat(zone){
+
+    const list = getEmptySeatsByZone(zone);
+
+    if(list.length===0){
+
+        return null;
+
+    }
+
+    return list[0];
+
+}
+
+
+/*==========================================================
+ Zone Capacity
+==========================================================*/
+
+function zoneCapacity(zone){
+
+    return getSeatsByZone(zone).length;
+
+}
+
+
+/*==========================================================
+ Zone Summary
+==========================================================*/
+
+function zoneSummary(){
+
+    return Object.keys(ZONES).map(code=>{
+
+        return{
+
+            code,
+
+            name:ZONES[code].name,
+
+            priority:ZONES[code].priority,
+
+            total:getSeatsByZone(code).length,
+
+            occupied:getOccupiedSeatsByZone(code).length,
+
+            empty:getEmptySeatsByZone(code).length,
+
+            locked:getLockedSeatsByZone(code).length
+
+        };
+
+    });
+
+}
+
+
+/*==========================================================
+ Refresh Zone
+==========================================================*/
+
+function refreshZone(){
+
+    refreshPriority();
+
+}
+
+
+/*==========================================================
+ Zone API
+==========================================================*/
+
+Engine.zone={
+
+    get:getZone,
+
+    seats:getSeatsByZone,
+
+    empty:getEmptySeatsByZone,
+
+    occupied:getOccupiedSeatsByZone,
+
+    locked:getLockedSeatsByZone,
+
+    next:getNextSeat,
+
+    capacity:zoneCapacity,
+
+    summary:zoneSummary,
+
+    refresh:refreshZone
+
+};
+
+
+/*==========================================================
+ Zone Ready
+==========================================================*/
+
+log("Zone Manager Ready");
+
 
