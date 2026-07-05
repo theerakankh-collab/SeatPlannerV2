@@ -7,7 +7,7 @@ async function loadPeople(){
     people=await res.json();
 
     renderPeople();
-
+    renderSeatNames();
 }
 
 function renderPeople(){
