@@ -1091,4 +1091,239 @@ autoSeat
 
 );
 
+/*==========================================================
+ Seat Planner Professional v4.0
+ engine.js
+ Part 5 : Priority Assignment Engine
+==========================================================*/
+
+/*==========================================================
+ Priority Mapping
+==========================================================*/
+
+const PRIORITY_ZONE = {
+
+    1 : ["A"],
+    2 : ["A","B"],
+    3 : ["A","B","C"],
+    4 : ["A","B","C","D"],
+    5 : ["E","F"],
+    6 : ["F","G"],
+    7 : ["G","H"],
+    8 : ["H"]
+
+};
+
+
+/*==========================================================
+ Get Priority
+==========================================================*/
+
+function getPersonPriority(person){
+
+    if(person.pri!=null){
+
+        return Number(person.pri);
+
+    }
+
+    if(person.priority!=null){
+
+        return Number(person.priority);
+
+    }
+
+    return 8;
+
+}
+
+
+/*==========================================================
+ Sort People
+==========================================================*/
+
+function sortPeopleByPriority(){
+
+    Engine.people.sort((a,b)=>{
+
+        return getPersonPriority(a)-
+
+               getPersonPriority(b);
+
+    });
+
+}
+
+
+/*==========================================================
+ Find Seat By Priority
+==========================================================*/
+
+function findSeatByPriority(person){
+
+    const pri=
+
+        getPersonPriority(person);
+
+    const zones=
+
+        PRIORITY_ZONE[pri] ||
+
+        ["H"];
+
+    for(const zone of zones){
+
+        const seat=
+
+        Engine.zone.next(zone);
+
+        if(seat){
+
+            return seat;
+
+        }
+
+    }
+
+    return null;
+
+}
+
+
+/*==========================================================
+ Assign By Priority
+==========================================================*/
+
+function assignPrioritySeat(){
+
+    sortPeopleByPriority();
+
+    Engine.result=[];
+
+    SeatAPI.clear();
+
+    Engine.people.forEach(person=>{
+
+        const seat=
+
+            findSeatByPriority(person);
+
+        if(!seat){
+
+            Engine.result.push({
+
+                person,
+
+                seat:null,
+
+                status:"WAIT"
+
+            });
+
+            return;
+
+        }
+
+        SeatAPI.assign(
+
+            seat.id,
+
+            person
+
+        );
+
+        Engine.result.push({
+
+            person,
+
+            seat:seat.id,
+
+            status:"OK"
+
+        });
+
+    });
+
+}
+
+
+/*==========================================================
+ Count Priority
+==========================================================*/
+
+function priorityStatistic(){
+
+    const stat={};
+
+    Engine.people.forEach(person=>{
+
+        const pri=
+
+        getPersonPriority(person);
+
+        if(!stat[pri]){
+
+            stat[pri]=0;
+
+        }
+
+        stat[pri]++;
+
+    });
+
+    return stat;
+
+}
+
+
+/*==========================================================
+ Check Overflow
+==========================================================*/
+
+function checkPriorityOverflow(){
+
+    const wait=
+
+    Engine.result.filter(
+
+        r=>r.status==="WAIT"
+
+    );
+
+    return wait.length;
+
+}
+
+
+/*==========================================================
+ Run Priority Engine
+==========================================================*/
+
+function runPriorityEngine(){
+
+    log("Priority Engine");
+
+    assignPrioritySeat();
+
+    SeatAPI.refresh();
+
+}
+
+
+/*==========================================================
+ Engine API
+==========================================================*/
+
+Engine.priorityEngine={
+
+    run:runPriorityEngine,
+
+    sort:sortPeopleByPriority,
+
+    statistic:priorityStatistic,
+
+    overflow:checkPriorityOverflow
+
+};
+
 
