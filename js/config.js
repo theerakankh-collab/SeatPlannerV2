@@ -415,3 +415,82 @@ Object.freeze(AUTO);
 Object.freeze(PRINT);
 Object.freeze(DASHBOARD);
 Object.freeze(EXPORT);
+
+/* ==========================================================
+   Create Layout ตามผังจริง
+========================================================== */
+
+function createAllZones() {
+
+    // HeadCenter
+    const head = LAYOUT.find(z => z.code === "A");
+    if (head) {
+        seatMapElement.appendChild(createHeadCenter(head));
+    }
+
+    // Main Area
+    const main = document.createElement("div");
+    main.className = "main-layout";
+
+    // Left
+    const left = document.createElement("div");
+    left.className = "left-zone";
+
+    ["B","C","D"].forEach(code => {
+
+        const zone = LAYOUT.find(z => z.code === code);
+
+        if(zone){
+
+            left.appendChild(createSideZone(zone));
+
+        }
+
+    });
+
+    // Walkway
+    const walkway = document.createElement("div");
+
+    walkway.className = "walkway";
+
+    walkway.innerHTML = "<span>ทางเดิน</span>";
+
+    // Right
+    const right = document.createElement("div");
+
+    right.className = "right-zone";
+
+    ["E","F","G"].forEach(code=>{
+
+        const zone = LAYOUT.find(z=>z.code===code);
+
+        if(zone){
+
+            right.appendChild(createSideZone(zone));
+
+        }
+
+    });
+
+    main.appendChild(left);
+
+    main.appendChild(walkway);
+
+    main.appendChild(right);
+
+    seatMapElement.appendChild(main);
+
+    // Upper
+    const upper = LAYOUT.find(z=>z.code==="H");
+
+    if(upper){
+
+        seatMapElement.appendChild(
+
+            createUpperZone(upper)
+
+        );
+
+    }
+
+}
