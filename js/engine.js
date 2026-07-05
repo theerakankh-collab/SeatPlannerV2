@@ -866,4 +866,229 @@ Engine.zone={
 
 log("Zone Manager Ready");
 
+/*==========================================================
+ Seat Planner Professional v4.0
+ engine.js
+ Part 4 : Auto Seat Algorithm
+==========================================================*/
+
+/*==========================================================
+ Auto Seat
+==========================================================*/
+
+function autoSeat(){
+
+    if(!Engine.running){
+
+        startEngine();
+
+    }
+
+    refreshPriority();
+
+    Engine.result=[];
+
+    SeatAPI.clear();
+
+    log("Auto Seat Start");
+
+    assignPriority();
+
+    finishAssign();
+
+}
+
+
+/*==========================================================
+ Assign Priority
+==========================================================*/
+
+function assignPriority(){
+
+    Engine.people.forEach(person=>{
+
+        assignPerson(person);
+
+    });
+
+}
+
+
+/*==========================================================
+ Assign Person
+==========================================================*/
+
+function assignPerson(person){
+
+    const seat=findSeat(person);
+
+    if(!seat){
+
+        Engine.result.push({
+
+            person,
+
+            status:"UNASSIGNED"
+
+        });
+
+        return;
+
+    }
+
+    SeatAPI.assign(
+
+        seat.id,
+
+        person
+
+    );
+
+    Engine.result.push({
+
+        person,
+
+        seat:seat.id,
+
+        status:"ASSIGNED"
+
+    });
+
+}
+
+
+/*==========================================================
+ Find Seat
+==========================================================*/
+
+function findSeat(person){
+
+    const zones=PRIORITY_ORDER;
+
+    for(const zone of zones){
+
+        const seat=
+
+            Engine.zone.next(zone);
+
+        if(seat){
+
+            return seat;
+
+        }
+
+    }
+
+    return null;
+
+}
+
+
+/*==========================================================
+ Finish
+==========================================================*/
+
+function finishAssign(){
+
+    Engine.statistics.assigned=
+
+        Engine.result.filter(
+
+            r=>r.status==="ASSIGNED"
+
+        ).length;
+
+    Engine.statistics.unassigned=
+
+        Engine.result.filter(
+
+            r=>r.status==="UNASSIGNED"
+
+        ).length;
+
+    SeatAPI.refresh();
+
+    log("Auto Seat Finish");
+
+}
+
+
+/*==========================================================
+ Result
+==========================================================*/
+
+function getResult(){
+
+    return Engine.result;
+
+}
+
+
+/*==========================================================
+ Assigned Count
+==========================================================*/
+
+function assignedCount(){
+
+    return Engine.statistics.assigned;
+
+}
+
+
+/*==========================================================
+ Unassigned Count
+==========================================================*/
+
+function unassignedCount(){
+
+    return Engine.statistics.unassigned;
+
+}
+
+
+/*==========================================================
+ Reset Result
+==========================================================*/
+
+function clearResult(){
+
+    Engine.result=[];
+
+}
+
+
+/*==========================================================
+ Button
+==========================================================*/
+
+document.addEventListener(
+
+"DOMContentLoaded",
+
+()=>{
+
+const btn=
+
+document.getElementById(
+
+"btnAuto"
+
+);
+
+if(btn){
+
+btn.addEventListener(
+
+"click",
+
+autoSeat
+
+);
+
+}
+
+}
+
+);
+
 
