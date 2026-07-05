@@ -384,3 +384,133 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.addEventListener("click", autoSeat);
     }
 });
+
+/* =========================
+   PART 6: RENDER ENGINE
+   ========================= */
+
+const Engine = {
+  state: {
+    seats: [],
+    layout: null,
+    container: null
+  },
+
+  init(containerId, layoutData) {
+    this.state.container = document.getElementById(containerId);
+    this.state.layout = layoutData;
+
+    this.renderBase();
+    this.renderSeats();
+  },
+
+  /* -------------------------
+     วาดพื้นหลัง / ผังห้อง
+  -------------------------- */
+  renderBase() {
+    const c = this.state.container;
+    c.innerHTML = "";
+
+    const base = document.createElement("div");
+    base.className = "seat-layout-base";
+
+    base.style.width = this.state.layout.width + "px";
+    base.style.height = this.state.layout.height + "px";
+
+    c.appendChild(base);
+    this.baseLayer = base;
+  },
+
+  /* -------------------------
+     วาดที่นั่งทั้งหมด
+  -------------------------- */
+  renderSeats() {
+    const seats = this.state.seats;
+
+    seats.forEach(seat => {
+      const el = this.createSeatElement(seat);
+      this.baseLayer.appendChild(el);
+    });
+  },
+
+  /* -------------------------
+     สร้าง DOM ที่นั่ง 1 ตัว
+  -------------------------- */
+  createSeatElement(seat) {
+    const el = document.createElement("div");
+
+    el.className = "seat";
+    el.id = `seat-${seat.id}`;
+
+    el.innerText = seat.label || seat.id;
+
+    el.style.position = "absolute";
+    el.style.left = seat.x + "px";
+    el.style.top = seat.y + "px";
+
+    el.dataset.id = seat.id;
+
+    // สีตามประเภท
+    if (seat.type === "HEAD") {
+      el.classList.add("seat-head");
+    } else if (seat.type === "CENTER") {
+      el.classList.add("seat-center");
+    } else {
+      el.classList.add("seat-normal");
+    }
+
+    this.attachSeatEvents(el, seat);
+
+    return el;
+  },
+
+  /* -------------------------
+     event ของที่นั่ง
+  -------------------------- */
+  attachSeatEvents(el, seat) {
+    let isDragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    el.addEventListener("mousedown", (e) => {
+      isDragging = true;
+      offsetX = e.offsetX;
+      offsetY = e.offsetY;
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (!isDragging) return;
+
+      const rect = this.baseLayer.getBoundingClientRect();
+
+      seat.x = e.clientX - rect.left - offsetX;
+      seat.y = e.clientY - rect.top - offsetY;
+
+      el.style.left = seat.x + "px";
+      el.style.top = seat.y + "px";
+    });
+
+    document.addEventListener("mouseup", () => {
+      isDragging = false;
+    });
+  },
+
+  /* -------------------------
+     เพิ่มที่นั่งใหม่
+  -------------------------- */
+  addSeat(seat) {
+    this.state.seats.push(seat);
+
+    const el = this.createSeatElement(seat);
+    this.baseLayer.appendChild(el);
+  },
+
+  /* -------------------------
+     refresh ทั้งหมด
+  -------------------------- */
+  refresh() {
+    this.baseLayer.innerHTML = "";
+    this.renderSeats();
+  }
+};
+
