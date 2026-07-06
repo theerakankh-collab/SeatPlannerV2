@@ -4,19 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seat Planner Professional</title>
+    
     <link rel="stylesheet" href="css/dashboard.css">
+    <style media="print">
+        header, .leftPanel, .rightPanel, nav, input, button { display: none !important; }
+        main { display: block !important; padding: 0; }
+        .centerPanel { width: 100% !important; height: auto !important; }
+    </style>
     
     <script src="library/xlsx.full.min.js" defer></script>
-    <script src="js/layout.js" defer></script>
+    
     <script src="js/person.js" defer></script>
-    <script src="js/renderer.js" defer></script>
-    <script src="js/excel.js" defer></script>
+    <script src="js/seat.js" defer></script>
+    <script src="js/layout.js" defer></script>
+    
     <script src="js/engine.js" defer></script>
     <script src="js/autoseat.js" defer></script>
-    <script src="js/seat.js" defer></script>
-    <script src="js/swap.js" defer></script>
-    <script src="js/dragdrop.js" defer></script>
+    <script src="js/excel.js" defer></script>
+    
+    <script src="js/renderer.js" defer></script>
     <script src="js/zoom.js" defer></script>
+    <script src="js/dragdrop.js" defer></script>
+    <script src="js/swap.js" defer></script>
+    
     <script src="js/dashboard.js" defer></script>
 </head>
 <body>
