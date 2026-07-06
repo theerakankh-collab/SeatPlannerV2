@@ -1,9 +1,14 @@
 /* ==========================================================
    Seat Planner Professional v4.0
-   seat.css (Unified SVG & Dashboard Interface)
+   dashboard.css (Unified SVG & Dashboard Interface)
 ========================================================== */
 
 /* Layout Workspace & Panels Structure */
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
 .app-layout {
     display: flex;
     height: calc(100vh - 70px); /* หักความสูงของ Header ออก */
@@ -46,29 +51,31 @@
     cursor: grabbing;
 }
 
+/* ป้องกันเส้นขอบของ SVG แตกเมื่อทำการซูณเข้า/ออก (ขยายขนาดตามความเหมาะสม) */
+#room {
+    vector-effect: non-scaling-stroke;
+}
+
 /* ==========================================================
    SVG Interactive Elements (โต๊ะ และ เก้าอี้ บนระบบ SVG)
 ========================================================== */
 
 /* สไตล์เก้าอี้หลัก (SVG Tag: <rect> หรือ <circle>) */
 .svg-seat {
-    fill: #ffffff;
-    stroke: #90A4AE;
     stroke-width: 2px;
     cursor: pointer;
-    transition: fill 0.2s, stroke 0.2s, transform 0.2s;
-    transform-origin: center;
+    transition: fill 0.2s, stroke 0.2s, stroke-width 0.2s, filter 0.2s;
 }
 
+/* ดึงเอฟเฟกต์โฮเวอร์แยกออกมาเพื่อให้ทำงานร่วมกับสีทุกโซนได้ */
 .svg-seat:hover {
-    filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.2));
+    filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
 }
 
 /* ข้อความบน SVG เก้าอี้ (<text>) */
 .svg-seat-text {
     font-size: 12px;
     font-weight: bold;
-    fill: #37474F;
     text-anchor: middle;
     dominant-baseline: middle;
     pointer-events: none; /* ป้องกันการแย่ง Focus ลากวาง */
@@ -76,40 +83,40 @@
 }
 
 /* ==========================================================
-   Seat Colors Theme (สอดคล้องกับผัง Zone ใน Engine และสีเดิม)
+   Seat Colors Theme (สอดคล้องกับผัง Zone ใน Engine)
 ========================================================== */
 
 /* ประธาน / HeadCenter (Zone A) */
 .svg-seat.headcenter, .color-headcenter { fill: #FF9800; stroke: #E65100; }
-.svg-seat.headcenter + text { fill: #ffffff; }
+.svg-seat.headcenter + text.svg-seat-text { fill: #ffffff; }
 
 /* Upper1 (Zone H) */
 .svg-seat.upper1, .color-upper1 { fill: #42A5F5; stroke: #1565C0; }
-.svg-seat.upper1 + text { fill: #ffffff; }
+.svg-seat.upper1 + text.svg-seat-text { fill: #ffffff; }
 
 /* VIP (คัดกรองจากพาร์ท 6 ของ Engine) */
 .svg-seat.vip, .color-vip { fill: #7E57C2; stroke: #4527A0; }
-.svg-seat.vip + text { fill: #ffffff; }
+.svg-seat.vip + text.svg-seat-text { fill: #ffffff; }
 
 /* ผู้ร่วมพิธีทั่วไป (Normal โซนอื่นๆ) */
 .svg-seat.normal, .color-normal { fill: #ECEFF1; stroke: #90A4AE; }
-.svg-seat.normal + text { fill: #37474F; }
+.svg-seat.normal + text.svg-seat-text { fill: #37474F; }
 
 /* เก้าอี้ว่าง */
 .svg-seat.empty {
-    fill: #fafafa;
-    stroke: #cccccc;
+    fill: #ffffff !important;
+    stroke: #b0bec5 !important;
     stroke-dasharray: 4,4;
 }
-.svg-seat.empty + text { fill: #bbb; }
+.svg-seat.empty + text.svg-seat-text { fill: #90a4ae; font-weight: normal; }
 
 /* ==========================================================
    Special Status Classes (ระบบล็อก, เลือก, สลับ และลากวาง)
 ========================================================== */
 
-/* ปรับระบบสไตล์ล็อกให้เข้ากับเส้น SVG Vector */
+/* ล็อกที่นั่ง */
 .svg-seat.locked {
-    stroke: #ff0000 !important;
+    stroke: #d32f2f !important;
     stroke-width: 3px !important;
 }
 
@@ -117,17 +124,26 @@
 .svg-seat.selected {
     stroke: #00C853 !important;
     stroke-width: 4px !important;
+    filter: drop-shadow(0px 0px 6px rgba(0,200,83,0.5));
 }
 
 /* กำลังถูกลาก / ตัวรับการวาง (สอดคล้องกับ dragdrop.js) */
 .svg-seat.dragging {
-    opacity: 0.4;
+    opacity: 0.3;
 }
 
+/* จังหวะลากคนมาจ่อเหนือเก้าอี้ (Dropzone Active) */
 .svg-seat.over {
-    stroke: #1976D2 !important;
+    stroke: #2196F3 !important;
     stroke-width: 3px !important;
-    stroke-dasharray: 5,3;
+    stroke-dasharray: 6,4;
+    animation: pulseBorder 1.5s infinite ease-in-out;
+}
+
+@keyframes pulseBorder {
+    0% { stroke-opacity: 0.6; }
+    50% { stroke-opacity: 1; }
+    100% { stroke-opacity: 0.6; }
 }
 
 /* ==========================================================
@@ -153,22 +169,31 @@
     font-size: 16px;
     cursor: pointer;
     box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .canvas-actions button:hover {
     background: #f5f7fb;
     transform: translateY(-2px);
+    border-color: #b0bec5;
+}
+
+.canvas-actions button:active {
+    transform: translateY(0);
 }
 
 /* ป้ายสถานะรุ่นเวอร์ชัน และตัวเลขสถิติแดชบอร์ด */
 .v-badge {
-    font-size: 12px;
+    font-size: 11px;
     background: #1565C0;
     color: white;
     padding: 3px 8px;
     border-radius: 12px;
     vertical-align: middle;
+    font-weight: normal;
 }
 
 .count-badge {
@@ -186,13 +211,19 @@
     border-bottom: 1px solid #f0f4f8;
 }
 
-.text-success { color: #00C853; }
-.text-warning { color: #FF9800; }
+.text-success { color: #00C853; font-weight: bold; }
+.text-warning { color: #FF9800; font-weight: bold; }
+
+/* รายละเอียดผู้เข้าร่วมฝั่งซ้าย (ตกแต่งเพิ่มเติมเผื่อไว้) */
+.dynamic-list {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 15px;
+}
 
 /* ==========================================================
    Static Layout Background (เวที และ สิ่งปลูกสร้าง)
 ========================================================== */
-
 .svg-stage {
     fill: #37474F;
     rx: 8px; /* ทำมุมโค้งมนบนเวที SVG */
@@ -204,25 +235,29 @@
     font-weight: bold;
     text-anchor: middle;
     dominant-baseline: middle;
+    user-select: none;
+    pointer-events: none;
 }
 
 /* ==========================================================
-   Media Print
+   Media Print (ปรับปรุงเพื่อความคมชัดของ Vector)
 ========================================================== */
 @media print {
     header, .leftPanel, .rightPanel, .canvas-actions {
         display: none !important;
     }
-    .app-layout {
-        height: auto;
-        background: #ffffff;
+    body, .app-layout, .centerPanel, #canvas {
+        background: #ffffff !important;
+        height: auto !important;
+        width: 100% !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
-    .centerPanel {
-        width: 100%;
-        height: auto;
-    }
-    #canvas svg {
+    #room {
         width: 100% !important;
         height: auto !important;
+        max-height: 100vh;
+        page-break-inside: avoid;
     }
 }
