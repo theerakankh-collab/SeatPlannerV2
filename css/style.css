@@ -1,5 +1,6 @@
 /* ==========================================================
    Seat Planner Professional v4.1 (Production Ready)
+   dashboard.css (Unified SVG & Dashboard Interface)
 ========================================================== */
 
 * {
@@ -36,10 +37,9 @@ html, body {
 }
 
 body {
-    font-family: "Segoe UI", Tahoma, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background: var(--bg);
     color: var(--text);
-
     overflow: hidden;
     height: 100vh;
 }
@@ -53,11 +53,9 @@ header {
     color: #fff;
     padding: 12px 20px;
     box-shadow: var(--shadow);
-
     display: flex;
     justify-content: space-between;
     align-items: center;
-
     height: 70px;
     z-index: 100;
 }
@@ -91,7 +89,6 @@ header nav {
     width: clamp(260px, 22vw, 340px);
     background: var(--card);
     border-right: 1px solid var(--border);
-
     display: flex;
     flex-direction: column;
     padding: 18px;
@@ -108,9 +105,24 @@ header nav {
     flex: 1;
     position: relative;
     background: #eef2f5;
-
     overflow: hidden;
     touch-action: none; /* สำคัญสำหรับ iPad drag/zoom */
+}
+
+/* Canvas Container */
+#canvas {
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+}
+
+#canvas:active {
+    cursor: grabbing;
+}
+
+/* รักษาสัดส่วนเส้นขอบโครงสร้าง SVG ไม่ให้หนาเตอะตอนซูม */
+#room {
+    vector-effect: non-scaling-stroke;
 }
 
 /* ==========================================================
@@ -136,25 +148,23 @@ input[type=text]:focus {
 }
 
 /* ==========================================================
-   LIST AREA
+   LIST AREA (Left Panel Person List)
 ========================================================== */
 
 .dynamic-list {
     flex: 1;
     overflow-y: auto;
-
     border: 1px dashed var(--border);
     border-radius: 8px;
-
     padding: 10px;
     background: #fafafa;
 }
 
-/* hover row */
 .dynamic-list div {
-    padding: 6px 8px;
+    padding: 8px 10px;
     border-radius: 6px;
     transition: 0.15s;
+    margin-bottom: 4px;
 }
 
 .dynamic-list div:hover {
@@ -200,10 +210,8 @@ input[type=text]:focus {
     padding: 8px 16px;
     border: 1px solid rgba(255,255,255,0.3);
     border-radius: 6px;
-
     background: transparent;
     color: #fff;
-
     font-size: 14px;
     cursor: pointer;
     transition: .2s;
@@ -214,7 +222,6 @@ input[type=text]:focus {
     transform: translateY(-1px);
 }
 
-/* active state (สำคัญกับ engine.js mode) */
 .nav-btn.active {
     background: rgba(255,255,255,0.25);
     border-color: #fff;
@@ -237,10 +244,8 @@ input[type=text]:focus {
     padding: 12px;
     border: none;
     border-radius: 8px;
-
     background: var(--primary);
     color: #fff;
-
     cursor: pointer;
     font-size: 15px;
     transition: .2s;
@@ -250,8 +255,38 @@ input[type=text]:focus {
     background: var(--primary-dark);
 }
 
+/* แผงปุ่มซูมลอยตัวในหน้าจอ */
+.canvas-actions {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.canvas-actions button {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid #cfd8dc;
+    background: #ffffff;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.canvas-actions button:hover {
+    background: var(--primary-light);
+    transform: translateY(-2px);
+}
+
 /* ==========================================================
-   DASHBOARD
+   DASHBOARD & BADGES
 ========================================================== */
 
 .status-dashboard {
@@ -277,65 +312,111 @@ input[type=text]:focus {
     font-size: 16px;
 }
 
-.text-success { color: var(--success); }
-.text-warning { color: var(--warning); }
-
-/* ==========================================================
-   BADGES
-========================================================== */
+.text-success { color: var(--success); font-weight: bold; }
+.text-warning { color: var(--warning); font-weight: bold; }
 
 .v-badge {
     display: inline-block;
     padding: 3px 8px;
     border-radius: 12px;
-
     background: rgba(255,255,255,0.2);
     color: white;
-
     font-size: 11px;
 }
 
 .count-badge {
     font-size: 12px;
     color: var(--text-muted);
-
     background: var(--primary-light);
     padding: 3px 8px;
     border-radius: 12px;
 }
 
 /* ==========================================================
-   SEAT SYSTEM (IMPORTANT FOR ENGINE.JS)
+   SVG INTERACTIVE SEAT SYSTEM (ENGINE & RENDERER COMPATIBLE)
 ========================================================== */
 
-.seat {
-    transition: 0.2s;
-}
-
-.seat:hover {
-    opacity: 0.85;
+.svg-seat {
+    stroke-width: 2px;
     cursor: pointer;
+    transition: fill 0.2s, stroke 0.2s, stroke-width 0.15s, filter 0.2s;
 }
 
-.seat.selected {
-    stroke: var(--primary);
-    stroke-width: 3;
+.svg-seat:hover {
+    filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.2));
+    opacity: 0.9;
 }
 
-.seat.occupied {
-    fill: var(--danger);
+/* ตัวหนังสือบอกชื่อ/เลขเก้าอี้ */
+.svg-seat-text {
+    font-size: 12px;
+    font-weight: bold;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    pointer-events: none;
+    user-select: none;
 }
 
-.seat.available {
-    fill: var(--success);
+/* Zone & Status Colors Mapping */
+.svg-seat.headcenter, .color-headcenter { fill: #FF9800; stroke: #E65100; }
+.svg-seat.headcenter + text.svg-seat-text { fill: #ffffff; }
+
+.svg-seat.upper1, .color-upper1 { fill: #42A5F5; stroke: #1565C0; }
+.svg-seat.upper1 + text.svg-seat-text { fill: #ffffff; }
+
+.svg-seat.vip, .color-vip { fill: #7E57C2; stroke: #4527A0; }
+.svg-seat.vip + text.svg-seat-text { fill: #ffffff; }
+
+.svg-seat.normal, .color-normal { fill: #ECEFF1; stroke: #90A4AE; }
+.svg-seat.normal + text.svg-seat-text { fill: #37474F; }
+
+/* สถานะว่าง / มีคนนั่ง / ล็อก (ผูกกับตัวแปร CSS และ Engine) */
+.svg-seat.empty {
+    fill: #ffffff !important;
+    stroke: #b0bec5 !important;
+    stroke-dasharray: 4,4;
+}
+.svg-seat.empty + text.svg-seat-text { fill: #90a4ae; font-weight: normal; }
+
+.svg-seat.occupied { fill: var(--danger); stroke: #b71c1c; }
+.svg-seat.occupied + text.svg-seat-text { fill: #ffffff; }
+
+.svg-seat.available { fill: var(--success); stroke: #1b5e20; }
+.svg-seat.available + text.svg-seat-text { fill: #ffffff; }
+
+.svg-seat.locked { fill: #666666 !important; stroke: #37474F !important; }
+.svg-seat.locked + text.svg-seat-text { fill: #ffffff; }
+
+/* เอนิเมชันตอนถูกเลือก หรือ ลากคนมาจ่อ (Interaction) */
+.svg-seat.selected {
+    stroke: var(--primary) !important;
+    stroke-width: 4px !important;
+    filter: drop-shadow(0px 0px 8px rgba(21,101,192,0.6));
 }
 
-.seat.locked {
-    fill: #666;
+.svg-seat.dragging {
+    opacity: 0.3;
 }
+
+.svg-seat.over {
+    stroke: #2196F3 !important;
+    stroke-width: 3px !important;
+    stroke-dasharray: 6,4;
+    animation: svgPulse 1.5s infinite ease-in-out;
+}
+
+@keyframes svgPulse {
+    0% { stroke-opacity: 0.6; }
+    50% { stroke-opacity: 1; }
+    100% { stroke-opacity: 0.6; }
+}
+
+/* แบ็คกราวด์องค์ประกอบนิ่ง (เช่น เวที) */
+.svg-stage { fill: #37474F; rx: 8px; }
+.svg-stage-text { fill: #ffffff; font-size: 20px; font-weight: bold; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
 
 /* ==========================================================
-   RESPONSIVE
+   RESPONSIVE (Tablet / Mobile Optimization)
 ========================================================== */
 
 @media (max-width: 1024px) {
@@ -357,7 +438,7 @@ input[type=text]:focus {
 }
 
 /* ==========================================================
-   PRINT MODE
+   PRINT MODE (High Quality Vector Printing)
 ========================================================== */
 
 @media print {
@@ -378,5 +459,13 @@ input[type=text]:focus {
     .centerPanel {
         width: 100%;
         height: auto;
+        padding: 0;
+    }
+
+    #canvas svg {
+        width: 100% !important;
+        height: auto !important;
+        max-height: 100vh;
+        page-break-inside: avoid;
     }
 }
