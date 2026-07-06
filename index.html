@@ -4,40 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seat Planner Professional</title>
+    
+    <!-- CSS หลัก -->
     <link rel="stylesheet" href="css/style.css">
     
+    <!-- สไตล์สำหรับการพิมพ์ (Print Mode): ซ่อนส่วนควบคุม เหลือเฉพาะสรุปและตัวผัง -->
+    <style media="print">
+        header, .control-panel, button { display: none !important; }
+        main { display: block !important; padding: 0 !important; }
+        .workspace { box-shadow: none !important; border: none !important; background: none !important; }
+    </style>
+    
+    <!-- Libraries & Main Script (แบบรวมศูนย์) -->
     <script src="library/xlsx.full.min.js" defer></script>
     <script src="js/app.js" defer></script>
 </head>
 <body>
 
 <header>
-    <h1>Seat Planner Professional</h1>
+    <div class="header-container">
+        <h1>Seat Planner Professional</h1>
+        <div class="header-actions">
+            <button id="saveProject" type="button" class="btn-secondary">บันทึก</button>
+            <button id="loadProject" type="button" class="btn-secondary">เปิดโปรเจกต์</button>
+            <button id="printLayout" type="button" class="btn-primary">พิมพ์ผังที่นั่ง</button>
+        </div>
+    </div>
 </header>
 
-<div class="container">
+<main class="dashboard-container">
 
-    <div class="card">
-        <h2>นำเข้าข้อมูล</h2>
-        <input type="file" id="excelFile" accept=".xlsx,.xls">
-        <button id="importBtn">Import Excel</button>
-    </div>
+    <!-- ฝั่งซ้าย: แผงควบคุมและเครื่องมือ (Control Panel) -->
+    <aside class="control-panel">
+        
+        <!-- Card 1: นำเข้าข้อมูล -->
+        <section class="card">
+            <h2>นำเข้าข้อมูล</h2>
+            <div class="file-upload-box">
+                <input type="file" id="excelFile" accept=".xlsx,.xls" hidden>
+                <button id="importBtn" type="button" class="btn-upload">เลือกไฟล์ Excel</button>
+            </div>
+        </section>
 
-    <div class="card">
-        <h2>เครื่องมือ</h2>
-        <button id="createLayout">สร้างผัง</button>
-        <button id="saveProject">บันทึก</button>
-        <button id="loadProject">เปิด</button>
-        <button id="printLayout">พิมพ์</button>
-    </div>
+        <!-- Card 2: เครื่องมือสร้างผัง -->
+        <section class="card">
+            <h2>การจัดการผัง</h2>
+            <button id="createLayout" type="button" class="btn-action">สร้างผังที่นั่งใหม่</button>
+        </section>
 
-    <div class="card">
-        <h2>สรุป</h2>
-        <p>จำนวนผู้เข้าร่วม</p>
-        <p id="totalPeople">0 คน</p>
-    </div>
+        <!-- Card 3: สรุปข้อมูล -->
+        <section class="card status-card">
+            <h2>สรุปข้อมูล</h2>
+            <div class="status-group">
+                <div class="status-item">
+                    <span class="label">จำนวนผู้เข้าร่วมทั้งหมด:</span>
+                    <span id="totalPeople" class="value">0 คน</span>
+                </div>
+            </div>
+        </section>
+        
+    </aside>
 
-</div>
+    <!-- ฝั่งขวา: พื้นที่แสดงผลผังที่นั่ง (Workspace) -->
+    <section class="workspace">
+        <div class="workspace-header">
+            <h3>พื้นที่แสดงผลผังที่นั่ง</h3>
+        </div>
+        <div id="canvasContainer" class="canvas-container">
+            <!-- จุดนี้เอาไว้ให้ app.js วาดตาราง, SVG หรือ Render ผังที่นั่งลงไป -->
+            <div class="canvas-placeholder">
+                <p>กดปุ่ม "เลือกไฟล์ Excel" หรือ "สร้างผังที่นั่งใหม่" เพื่อเริ่มต้น</p>
+            </div>
+        </div>
+    </section>
+
+</main>
 
 </body>
 </html>
